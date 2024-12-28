@@ -1,0 +1,33 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "buildLin",
+			"group": "build",
+			"problemMatcher": [
+				"$tsc"
+			],
+			"label": "buildLin"
+		},
+		{
+			"type": "npm",
+			"script": "buildWin",
+			"group": "build",
+			"problemMatcher": [
+				"$tsc"
+			],
+			"label": "buildWin"
+		},
+		{
+			"type": "npm",
+			"script": "dev",
+			"path": "build",
+			"problemMatcher": [],
+			"label": "npm: dev - build",
+			"detail": "ts-node-dev src/index.ts"
+		}
+	]
+
+
+}
