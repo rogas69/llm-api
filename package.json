@@ -32,8 +32,10 @@
     "@types/supertest": "^6.0.2",
     "awilix": "^12.0.4",
     "awilix-express": "^9.0.2",
+    "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "langchain": "^0.3.8",
+    "mongodb": "^6.12.0",
     "node-mocks-http": "^1.16.2",
     "supertest": "^7.0.0"
   }

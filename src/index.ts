@@ -1,6 +1,6 @@
 import express from 'express';
 import { loadControllers } from 'awilix-express';
-import { setupDIContainer } from './container';
+import { setupDIContainer } from './bootstrap';
 import { ILogger } from './services/ILogger';
 import { Logger } from './services/Logger';
 
