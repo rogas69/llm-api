@@ -1,10 +1,9 @@
-namespace ApiData {
+export namespace ApiData {
     /**
-     * Used to transfer data from the database to the client
+     * Used to transfer data from the database to the client. 
      */
-    export class RoleDto {
+    export class BoundaryDto {
         constructor(
-            public readonly id: string,
             public readonly name: string,
             public readonly description: string
         ) { }

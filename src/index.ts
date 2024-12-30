@@ -3,6 +3,7 @@ import { loadControllers } from 'awilix-express';
 import { setupDIContainer } from './bootstrap';
 import { ILogger } from './services/ILogger';
 import { Logger } from './services/Logger';
+import * as dotenv from 'dotenv'
 
 const HTTP_PORT = 3000;
 
@@ -13,9 +14,12 @@ const startServer = async () => {
     const app: express.Application = express();
     app.use(express.json());
     
+    //load environment variables
+    dotenv.config({path: __dirname + '/.env'});
+
     setupDIContainer(app);
     
-    const router : express.Router = loadControllers('controllers/*.ts', { cwd: __dirname }); 
+    const router : express.Router = loadControllers('controllers/**/*.ts', { cwd: __dirname }); 
     app.use(router);
 
     app.listen(HTTP_PORT, () => {
