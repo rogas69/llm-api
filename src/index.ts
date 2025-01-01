@@ -17,8 +17,13 @@ const startServer = async () => {
     //load environment variables
     dotenv.config({path: __dirname + '/.env'});
 
-    setupDIContainer(app);
+    const container = setupDIContainer(app);
     
+    //seed data if required. Commend this code if the seeding is not required.
+    const dataSeedService = container.resolve('dataSeedService');
+    dataSeedService.seedData();
+    
+
     const router : express.Router = loadControllers('controllers/**/*.ts', { cwd: __dirname }); 
     app.use(router);
 

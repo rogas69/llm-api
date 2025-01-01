@@ -1,4 +1,4 @@
-import { asClass, asFunction, asValue, createContainer } from "awilix";
+import { asClass, asFunction, asValue, AwilixContainer, createContainer } from "awilix";
 import { scopePerRequest } from "awilix-express";
 import { Application } from "express";
 import { Logger } from "./services/Logger";
@@ -8,6 +8,7 @@ import { DBContext } from "./database/dbcontext";
 
 import { BoundariesRepository } from "./services/data/boundariesrepository";
 import { BoundaryConfigurationRepository } from "./services/data/boundaryconfigurationrepository";
+import { DataSeedService } from "./services/dataseed.service";
 /**
  * This function is responsible for loading the DI container
  * @param app - the express application
@@ -15,7 +16,7 @@ import { BoundaryConfigurationRepository } from "./services/data/boundaryconfigu
 export const setupDIContainer = (app: Application) => {
   
   
-  const container = createContainer( {injectionMode: "CLASSIC"} );
+  const container : AwilixContainer<any>  = createContainer( {injectionMode: "CLASSIC"} );
   
   container.register({ logger: asFunction<ILogger>(() => new Logger()).singleton() });
 
@@ -25,6 +26,10 @@ export const setupDIContainer = (app: Application) => {
 
   container.register({ boundariesRepo: asClass(BoundariesRepository).scoped() });
   container.register({ boundaryConfigurationRepo: asClass(BoundaryConfigurationRepository).scoped() });
+  
+  container.register({ dataSeedService: asClass(DataSeedService).scoped() });
 
   app.use(scopePerRequest(container));
+
+  return container;
 }
