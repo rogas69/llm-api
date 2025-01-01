@@ -7,6 +7,7 @@ import { MongoClient } from "mongodb";
 import { DBContext } from "./database/dbcontext";
 
 import { BoundariesRepository } from "./services/data/boundariesrepository";
+import { BoundaryConfigurationRepository } from "./services/data/boundaryconfigurationrepository";
 /**
  * This function is responsible for loading the DI container
  * @param app - the express application
@@ -18,13 +19,12 @@ export const setupDIContainer = (app: Application) => {
   
   container.register({ logger: asFunction<ILogger>(() => new Logger()).singleton() });
 
-  console.log(process.env.DB_CONNECTION_STRING);
-
   container.register({ mongoDbClient: asFunction<MongoClient>(()=> new MongoClient(process.env.DB_CONNECTION_STRING!)).scoped() })
   container.register({ dbName: asValue<string>(process.env.DB_NAME!) });
   container.register({ dbContext: asClass(DBContext).scoped() });
 
   container.register({ boundariesRepo: asClass(BoundariesRepository).scoped() });
+  container.register({ boundaryConfigurationRepo: asClass(BoundaryConfigurationRepository).scoped() });
 
   app.use(scopePerRequest(container));
 }

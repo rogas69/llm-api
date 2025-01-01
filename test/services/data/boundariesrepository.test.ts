@@ -1,19 +1,19 @@
 import { BoundariesRepository } from '../../../src/services/data/boundariesrepository';
 import { DBContext } from '../../../src/database/dbcontext';
-import { MongoClient, Db, Collection, InsertOneResult, ObjectId } from 'mongodb';
+import { Db, Collection } from 'mongodb';
 import { ILogger } from '../../../src/services/ILogger';
 import '../../../src/services/data/boundarydto'; // Import the namespace
-import { ApiData } from '../../../src/services/data/boundarydto';
+import { BoundaryDto } from '../../../src/services/data/boundarydto';
 
 describe('BoundariesRepository Tests', () => {
     let dbContext: DBContext;
-    let dbClient: MongoClient;
+    //let dbClient: MongoClient;
     let db: Db;
     let collection: Collection;
     let logger: ILogger;
     let rolesRepository: BoundariesRepository;
     
-    const boundary: ApiData.BoundaryDto = { name: 'admin', description: 'some description' };
+    const boundary: BoundaryDto = { name: 'admin', description: 'some description' };
 
 
     beforeEach(() => {
@@ -31,11 +31,11 @@ describe('BoundariesRepository Tests', () => {
             collection: jest.fn().mockReturnValue(collection),
         } as unknown as Db;
 
-        dbClient = {
-            connect: jest.fn().mockResolvedValue(undefined),
-            db: jest.fn().mockReturnValue(db),
-            close: jest.fn().mockResolvedValue(undefined),
-        } as unknown as MongoClient;
+        // dbClient = {
+        //     connect: jest.fn().mockResolvedValue(undefined),
+        //     db: jest.fn().mockReturnValue(db),
+        //     close: jest.fn().mockResolvedValue(undefined),
+        // } as unknown as MongoClient;
 
         logger = {
             log: jest.fn(),
@@ -52,7 +52,7 @@ describe('BoundariesRepository Tests', () => {
     });
 
     it('should get all boundaries', async () => {
-        const roles = await rolesRepository.getAllBundaries();
+        const roles = await rolesRepository.getAllBoundaries();
 
         expect(dbContext.connectDatabase).toHaveBeenCalled();
         expect(db.collection).toHaveBeenCalledWith('boundaries');
@@ -72,7 +72,7 @@ describe('BoundariesRepository Tests', () => {
     });
 
     it('should insert a boundary', async () => {
-        //const role: ApiData.RoleDto = { id: 'firstid', name: 'admin', description: 'some description' };
+        //const role: RoleDto = { id: 'firstid', name: 'admin', description: 'some description' };
         await rolesRepository.insertBoundary(boundary);
 
         expect(dbContext.connectDatabase).toHaveBeenCalled();
@@ -92,7 +92,7 @@ describe('BoundariesRepository Tests', () => {
 
 
     it('should update a boundary', async () => {
-        const updatedBoundary: ApiData.BoundaryDto = { name: 'admin', description: 'updated description' };
+        const updatedBoundary: BoundaryDto = { name: 'admin', description: 'updated description' };
         collection.updateOne = jest.fn().mockResolvedValue({ matchedCount: 1 });
     
         const result = await rolesRepository.updateBoundary(updatedBoundary);
@@ -104,7 +104,7 @@ describe('BoundariesRepository Tests', () => {
     });
     
     it('should handle update boundary failure', async () => {
-        const updatedBoundary: ApiData.BoundaryDto = { name: 'admin', description: 'updated description' };
+        const updatedBoundary: BoundaryDto = { name: 'admin', description: 'updated description' };
         collection.updateOne = jest.fn().mockRejectedValue(new Error('Update failed'));
     
         const result = await rolesRepository.updateBoundary(updatedBoundary);

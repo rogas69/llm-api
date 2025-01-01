@@ -22,7 +22,7 @@ describe('BoundariesController Tests', () => {
         };
 
         repo = {
-            getAllBundaries: jest.fn().mockResolvedValue([{ name: 'admin', description: 'some description' }]),
+            getAllBoundaries: jest.fn().mockResolvedValue([{ name: 'admin', description: 'some description' }]),
             getBoundaryByName: jest.fn().mockResolvedValue([{ name: 'admin', description: 'some description' }]),
             insertBoundary: jest.fn().mockResolvedValue(undefined).mockReturnValue(true),
             updateBoundary: jest.fn().mockResolvedValue(true),
@@ -32,7 +32,7 @@ describe('BoundariesController Tests', () => {
         } as unknown as BoundariesRepository;
 
         repoNotFound = {
-            getAllBundaries: jest.fn().mockResolvedValue([{ name: 'admin', description: 'some description' }]),
+            getAllBoundaries: jest.fn().mockResolvedValue([{ name: 'admin', description: 'some description' }]),
             getBoundaryByName: jest.fn().mockResolvedValue([]),
             insertBoundary: jest.fn().mockResolvedValue(undefined),
             updateBoundary: jest.fn().mockResolvedValue(true),
@@ -64,7 +64,7 @@ describe('BoundariesController Tests', () => {
         await controller.getAllBoundaries(req, res);
 
         expect(logger.log).toHaveBeenCalledWith('getAllBoundaries called;');
-        expect(repo.getAllBundaries).toHaveBeenCalled();
+        expect(repo.getAllBoundaries).toHaveBeenCalled();
         expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
         expect(res.json).toHaveBeenCalledWith({ boundaries: [{ name: 'admin', description: 'some description' }] });
     });
