@@ -176,6 +176,25 @@ describe('BoundaryConfigurationRepository Tests', () => {
         expect(result).toBe(false);
     });
 
+    it('should not insert a boundary configuration when an exception is thrown during insertion', async () => {
+        const boundaryConfiguration: BoundaryConfigurationDto = {
+            boundaryName: 'TestBoundary',
+            modelProvider: 'OpenAI',
+            llmModelName: 'TestModel',
+            embeddingsModelName: 'TestEmbeddings',
+            comments: null
+        };
+        const errorMessage = 'Database error';
+
+        collection.findOne = jest.fn().mockResolvedValue({ name: 'TestBoundary' });
+        collection.insertOne = jest.fn().mockRejectedValue(new Error(errorMessage));
+
+        const result = await repository.insertBoundaryConfiguration(boundaryConfiguration);
+
+        expect(result).toBe(false);
+        expect(logger.error).toHaveBeenCalledWith(`Error inserting boundary configuration ${boundaryConfiguration.boundaryName}: Error: ${errorMessage}`);
+    });
+
     it('should not insert a boundary configuration if boundary does not exist', async () => {
         const boundaryConfiguration: BoundaryConfigurationDto = {
             boundaryName: 'boundary1',
@@ -226,6 +245,24 @@ describe('BoundaryConfigurationRepository Tests', () => {
 
         expect(logger.warn).toHaveBeenCalledWith('Error updating boundary configuration - invalid data passed.');
         expect(result).toBe(false);
+    });
+
+    it('should not update a boundary configuration when an exception is thrown during update', async () => {
+        const boundaryConfiguration: BoundaryConfigurationDto = {
+            boundaryName: 'TestBoundary',
+            modelProvider: 'OpenAI',
+            llmModelName: 'TestModel',
+            embeddingsModelName: 'TestEmbeddings',
+            comments: null
+        };
+        const errorMessage = 'Database error';
+
+        collection.updateOne = jest.fn().mockRejectedValue(new Error(errorMessage));
+
+        const result = await repository.updateBoundaryConfiguration(boundaryConfiguration);
+
+        expect(result).toBe(false);
+        expect(logger.error).toHaveBeenCalledWith(`Error updating boundary configuration ${boundaryConfiguration.boundaryName}: Error: ${errorMessage}`);
     });
 
     it('should not update a boundary configuration with invalid data - null properties', async () => {

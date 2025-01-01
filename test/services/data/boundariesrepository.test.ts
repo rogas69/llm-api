@@ -80,6 +80,28 @@ describe('BoundariesRepository Tests', () => {
         expect(collection.insertOne).toHaveBeenCalledWith(boundary);
     });
 
+    it('should return false and log a warning when boundary.name is not populated', async () => {
+        const boundary: BoundaryDto = { name: '', description: 'Test description' };
+
+        const result = await rolesRepository.insertBoundary(boundary);
+
+        expect(result).toBe(false);
+        expect(logger.warn).toHaveBeenCalledWith('Error inserting boundary - invalid data passed.');
+        expect(db.collection).not.toHaveBeenCalled();
+    });
+
+    it('should return false and log an error when an exception is thrown', async () => {
+        const boundary: BoundaryDto = { name: 'TestBoundary', description: 'Test description' };
+        const errorMessage = 'Database error';
+
+        collection.insertOne = jest.fn().mockRejectedValue(new Error(errorMessage));
+
+        const result = await rolesRepository.insertBoundary(boundary);
+
+        expect(result).toBe(false);
+        expect(logger.error).toHaveBeenCalledWith(`Error inserting boundary ${boundary.name}: Error: ${errorMessage}`);
+    });
+
     it('should delete boundary by name', async () => {
         const roleName = 'admin';
         await rolesRepository.deleteBoundaryByName(roleName);
@@ -116,6 +138,16 @@ describe('BoundariesRepository Tests', () => {
         expect(logger.error).toHaveBeenCalledWith('Error updating boundary admin: Error: Update failed');
     });
     
+    it('should return false and log a warning when boundaryName is not provided', async () => {
+        const boundaryName = '';
+
+        const result = await rolesRepository.deleteBoundaryByName(boundaryName);
+
+        expect(result).toBe(false);
+        expect(logger.warn).toHaveBeenCalledWith('Error deleting boundary - invalid name passed.');
+        expect(db.collection).not.toHaveBeenCalled();
+    });
+
     it('should handle delete boundary by name not found', async () => {
         collection.deleteOne = jest.fn().mockResolvedValue({ deletedCount: 0 });
     
@@ -139,6 +171,19 @@ describe('BoundariesRepository Tests', () => {
         expect(result).toBe(false);
         expect(logger.error).toHaveBeenCalledWith('Error deleting boundary admin: Error: Delete failed');
     });
+
+    it('should return false and log an error when an exception is thrown during deletion', async () => {
+        const boundaryName = 'TestBoundary';
+        const errorMessage = 'Database error';
+
+        collection.deleteOne = jest.fn().mockRejectedValue(new Error(errorMessage));
+
+        const result = await rolesRepository.deleteBoundaryByName(boundaryName);
+
+        expect(result).toBe(false);
+        expect(logger.error).toHaveBeenCalledWith(`Error deleting boundary ${boundaryName}: Error: ${errorMessage}`);
+    });
+
 
     it('should dispose dbContext', () => {
         rolesRepository[Symbol.dispose]();
