@@ -20,7 +20,10 @@ export class DataSeedService {
         this.logger.log('Seeding data...');
         this.seedBoundaries();
         this.seedBoundaryConfigurations();
+        this.seedProviderConfigurations()
     }
+
+    
 
     private async cleanTestingData(): Promise<void> {
         await this.dbContext
@@ -28,6 +31,7 @@ export class DataSeedService {
             .then(async db => {
                 await db.collection('boundaries').deleteMany({});
                 await db.collection('boundary_configurations').deleteMany({});
+                await db.collection('provider_configurations').deleteMany({});
             });
     };
 
@@ -64,6 +68,10 @@ export class DataSeedService {
                 embeddingsModelName: "some embedding model",
                 comments: null
             });
+    }
+
+    private async seedProviderConfigurations() {
+        
     }
 
 }
