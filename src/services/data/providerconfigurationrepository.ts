@@ -29,18 +29,43 @@ export class ProviderConfigurationRepository {
         return configurations ?? [];
     }
 
-    async getProviderModels(params: GetProviderConfigurationsParams): Promise<string[]> {
-        this.logger.log('getProviderModels called');
+    /**
+     * Returns a provider with the name providerName or null.
+     * @param providerName s
+     * @returns 
+     */
+    private async getProviderConfiguration(providerName: string) : Promise<ProviderConfigurationDto | null> {
         const db = await this.dbContext.connectDatabase();
-        const filter = this.buildFilter(params.modelProvider);
+        const filter = this.buildFilter(providerName);
         const config = await db.collection<ProviderConfigurationDto>(this.collectionName)
             .findOne(filter);
-        if (config) {
-            const { _id, ...providerConfig } = config; // Exclude the _id field
-            return (providerConfig as ProviderConfigurationDto).llmModelNames ?? [];
-        }
-        return [];
+        return config;
     }
+
+    /**
+     * Returns a list of chat models for a given provider, supported by the application. If provider is not found, the method returns an empty array.
+     * @param params 
+     * @returns 
+     */
+    async getProviderChatModels(params: GetProviderConfigurationsParams): Promise<string[]> {
+        this.logger.log('getProviderChatModels called');
+        const config = await this.getProviderConfiguration(params.modelProvider!);
+        return config?.llmModelNames ?? [];
+    }
+
+
+    /**
+     * Returns a list of embedding models for a given provider, supported by the application. If provider is not found, the method returns an empty array.
+     * @param params 
+     * @returns 
+     */
+    async getProviderEmbeddingModels(params: GetProviderConfigurationsParams): Promise<string[]> {
+        this.logger.log('getProviderEmbeddingModels called');
+        const config = await this.getProviderConfiguration(params.modelProvider!);
+        return config?.embeddingsModelNames ?? [];
+    }
+
+
 
     async insertProviderConfiguration(providerConfiguration: ProviderConfigurationDto): Promise<boolean> {
         if (!(this.validateProviderConfiguration(providerConfiguration))) {
@@ -100,3 +125,5 @@ export class ProviderConfigurationRepository {
         return filter;
     }
 }
+
+

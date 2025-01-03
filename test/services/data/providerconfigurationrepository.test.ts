@@ -43,32 +43,15 @@ describe('ProviderConfigurationRepository Tests', () => {
     });
 
     it('should log a message and return an empty array when no provider configurations are found', async () => {
-        const params = { modelProvider: 'Ollama' };
+        const params = { modelProvider: 'invalid provider' };
         const result = await providerConfigurationRepository.getProviderConfigurations(params);
 
         expect(logger.log).toHaveBeenCalledWith('getProviderConfigurations called');
+
+        expect(collection.find).toHaveBeenCalledWith({ modelProvider: 'invalid provider' });
         expect(result).toEqual([]);
     });
 
-    it('should log a message and return an empty array when no provider models are found', async () => {
-        const params = { modelProvider: 'Ollama' };
-        const result = await providerConfigurationRepository.getProviderModels(params);
-
-        expect(logger.log).toHaveBeenCalledWith('getProviderModels called');
-        expect(result).toEqual([]);
-    });
-
-    it('should return an empty array when no matching document is found', async () => {
-        const params: GetProviderConfigurationsParams = { modelProvider: 'Ollama' };
-
-        collection.findOne = jest.fn().mockResolvedValue(null);
-
-        const result = await providerConfigurationRepository.getProviderModels(params);
-
-        expect(result).toEqual([]);
-        expect(logger.log).toHaveBeenCalledWith('getProviderModels called');
-        expect(collection.findOne).toHaveBeenCalledWith({ modelProvider: 'Ollama' });
-    });
 
     it('should return provider configurations when found', async () => {
         const mockConfigurations: WithId<ProviderConfigurationDto>[] = [
@@ -90,6 +73,193 @@ describe('ProviderConfigurationRepository Tests', () => {
         expect(result).toEqual(mockConfigurations);
     });
 
+
+    it('should log a message and return an empty array of chat models when no provider models are found', async () => {
+        const params = { modelProvider: 'invalid provider' };
+        const result = await providerConfigurationRepository.getProviderChatModels(params);
+
+        expect(logger.log).toHaveBeenCalledWith('getProviderChatModels called');
+        expect(collection.findOne).toHaveBeenCalledWith({ modelProvider: 'invalid provider' });
+        expect(result).toEqual([]);
+    });
+
+    it('should log a message and return an empty array of chat models passed model provider is null', async () => {
+        const params = { modelProvider: null } as unknown as GetProviderConfigurationsParams;
+
+        const mockConfiguration = {
+            _id: new ObjectId(1234),
+            modelProvider: null,
+            llmModelNames: [],
+            embeddingsModelNames: ['embedding1', 'embedding2'],
+            llmModelParams: { baseUrl: 'http://localhost:11434' },
+            embeddingModelParams: { baseUrl: 'http://localhost:11434' }
+        } as unknown as WithId<ProviderConfigurationDto>;
+
+        ((await dbContext.connectDatabase())
+            .collection('providerConfigurations').findOne as jest.Mock)
+            .mockReturnValue(mockConfiguration);
+
+
+        const result = await providerConfigurationRepository.getProviderChatModels(params);
+
+        expect(result).toEqual([]);
+    });
+
+    it('should log a message and return an empty array of embedding models passed model provider is null', async () => {
+        const params = { modelProvider: null } as unknown as GetProviderConfigurationsParams;
+
+        ((await dbContext.connectDatabase())
+            .collection('providerConfigurations').findOne as jest.Mock)
+            .mockReturnValue(null);
+
+        const result = await providerConfigurationRepository.getProviderEmbeddingModels(params);
+
+        expect(result).toEqual([]);
+    });
+
+    it('should log a message and return an empty array of embedding models when no provider models are found', async () => {
+        const params = { modelProvider: 'Ollama' };
+        const result = await providerConfigurationRepository.getProviderEmbeddingModels(params);
+
+        expect(logger.log).toHaveBeenCalledWith('getProviderEmbeddingModels called');
+        expect(collection.findOne).toHaveBeenCalledWith({ modelProvider: 'Ollama' });
+        expect(result).toEqual([]);
+    });
+
+    it('should return an empty array when no matching document is found', async () => {
+        const params: GetProviderConfigurationsParams = { modelProvider: 'Ollama' };
+
+        collection.findOne = jest.fn().mockResolvedValue(null);
+
+        const result = await providerConfigurationRepository.getProviderChatModels(params);
+
+        expect(result).toEqual([]);
+        expect(logger.log).toHaveBeenCalledWith('getProviderChatModels called');
+        expect(collection.findOne).toHaveBeenCalledWith({ modelProvider: 'Ollama' });
+    });
+
+
+    it('should log a message and return an array of chat models provider if the provvider configuration is found', async () => {
+        const mockConfigurations: WithId<ProviderConfigurationDto>[] = [
+            {
+                _id: new ObjectId(1234),
+                modelProvider: 'Ollama',
+                llmModelNames: ['model1', 'model2'],
+                embeddingsModelNames: ['embedding1', 'embedding2'],
+                llmModelParams: { baseUrl: 'http://localhost:11434' },
+                embeddingModelParams: { baseUrl: 'http://localhost:11434' }
+            }
+        ];
+
+        const params = { modelProvider: 'Ollama' };
+
+        ((await dbContext.connectDatabase())
+            .collection('providerConfigurations').findOne as jest.Mock)
+            .mockReturnValue(mockConfigurations[0]);
+
+        const result = await providerConfigurationRepository.getProviderChatModels(params);
+
+        expect(logger.log).toHaveBeenCalledWith('getProviderChatModels called');
+        expect(collection.findOne).toHaveBeenCalledWith({ modelProvider: 'Ollama' });
+        expect(result).toEqual(['model1', 'model2']);
+    });
+
+    it('should log a message and return an empty array of chat models provider if the provvider configuration with empty list of chat models is found', async () => {
+        const mockConfiguration: WithId<ProviderConfigurationDto> = {
+            _id: new ObjectId(1234),
+            modelProvider: 'Ollama',
+            llmModelNames: [],
+            embeddingsModelNames: ['embedding1', 'embedding2'],
+            llmModelParams: { baseUrl: 'http://localhost:11434' },
+            embeddingModelParams: { baseUrl: 'http://localhost:11434' }
+        }
+
+        const params = { modelProvider: 'Ollama' };
+
+        ((await dbContext.connectDatabase())
+            .collection('providerConfigurations').findOne as jest.Mock)
+            .mockReturnValue(mockConfiguration);
+
+        const result = await providerConfigurationRepository.getProviderChatModels(params);
+
+        expect(logger.log).toHaveBeenCalledWith('getProviderChatModels called');
+        expect(collection.findOne).toHaveBeenCalledWith({ modelProvider: 'Ollama' });
+        expect(result).toEqual([]);
+    });
+
+
+    it('should log a message and return an empty array of chat models provider if the provvider configuration with empty list of chat models is found', async () => {
+        const mockConfiguration = {
+            _id: new ObjectId(1234),
+            modelProvider: 'Ollama',
+            llmModelNames: null,
+            embeddingsModelNames: ['embedding1', 'embedding2'],
+            llmModelParams: { baseUrl: 'http://localhost:11434' },
+            embeddingModelParams: { baseUrl: 'http://localhost:11434' }
+        } as unknown as WithId<ProviderConfigurationDto>;
+
+        const params = { modelProvider: 'Ollama' };
+
+        ((await dbContext.connectDatabase())
+            .collection('providerConfigurations').findOne as jest.Mock)
+            .mockReturnValue(mockConfiguration);
+
+        const result = await providerConfigurationRepository.getProviderChatModels(params);
+
+        expect(logger.log).toHaveBeenCalledWith('getProviderChatModels called');
+        expect(collection.findOne).toHaveBeenCalledWith({ modelProvider: 'Ollama' });
+        expect(result).toEqual([]);
+    });
+
+    it('should log a message and return an empty array of chat models provider if the provvider configuration is not found', async () => {
+        const mockConfiguration = {
+            _id: new ObjectId(1234),
+            modelProvider: 'invalid provider',
+            llmModelNames: null,
+            embeddingsModelNames: ['embedding1', 'embedding2'],
+            llmModelParams: { baseUrl: 'http://localhost:11434' },
+            embeddingModelParams: { baseUrl: 'http://localhost:11434' }
+        } as unknown as WithId<ProviderConfigurationDto>;
+
+        const params = { modelProvider: 'invalid provider' };
+
+        ((await dbContext.connectDatabase())
+            .collection('providerConfigurations').findOne as jest.Mock)
+            .mockReturnValue(null);
+
+        const result = await providerConfigurationRepository.getProviderChatModels(params);
+
+        expect(logger.log).toHaveBeenCalledWith('getProviderChatModels called');
+        expect(collection.findOne).toHaveBeenCalledWith({ modelProvider: 'invalid provider' });
+        expect(result).toEqual([]);
+    });
+
+    it('should log a message and return an array of embedding models if the provider configuration is found', async () => {
+        const mockConfigurations: WithId<ProviderConfigurationDto>[] = [
+            {
+                _id: new ObjectId(1234),
+                modelProvider: 'Ollama',
+                llmModelNames: ['model1', 'model2'],
+                embeddingsModelNames: ['embedding1', 'embedding2'],
+                llmModelParams: { baseUrl: 'http://localhost:11434' },
+                embeddingModelParams: { baseUrl: 'http://localhost:11434' }
+            }
+        ];
+
+        const params = { modelProvider: 'Ollama' };
+
+        ((await dbContext.connectDatabase())
+            .collection('providerConfigurations').findOne as jest.Mock)
+            .mockResolvedValue(mockConfigurations[0]);
+
+        const result = await providerConfigurationRepository.getProviderEmbeddingModels(params);
+
+        expect(logger.log).toHaveBeenCalledWith('getProviderEmbeddingModels called');
+        expect(collection.findOne).toHaveBeenCalledWith({ modelProvider: 'Ollama' });
+        expect(result).toEqual(['embedding1', 'embedding2']);
+    });
+
+
     it('should return provider models when found', async () => {
         const mockConfiguration: WithId<ProviderConfigurationDto> = {
             _id: new ObjectId(1234),
@@ -103,7 +273,7 @@ describe('ProviderConfigurationRepository Tests', () => {
         collection.findOne = jest.fn().mockResolvedValue(mockConfiguration);
 
         const params = { modelProvider: 'Ollama' };
-        const result = await providerConfigurationRepository.getProviderModels(params);
+        const result = await providerConfigurationRepository.getProviderChatModels(params);
 
         expect(result).toEqual(mockConfiguration.llmModelNames);
     });
@@ -143,7 +313,7 @@ describe('ProviderConfigurationRepository Tests', () => {
             modelProvider: 'Ollama',
             llmModelNames: [],
             embeddingsModelNames: ['embedding1', 'embedding2'],
-            llmModelParams: { model: 'SomeModel',baseUrl: 'http://localhost:11434' },
+            llmModelParams: { model: 'SomeModel', baseUrl: 'http://localhost:11434' },
             embeddingModelParams: { baseUrl: 'http://localhost:11434' }
         };
 
@@ -274,7 +444,7 @@ describe('ProviderConfigurationRepository Tests', () => {
             llmModelNames: ['model1', 'model2'],
             embeddingsModelNames: ['embedding1', 'embedding2'],
             llmModelParams: { model: 'someModel', baseUrl: 'http://localhost:11434' },
-            embeddingModelParams: { model: 'google embedding model',  baseUrl: 'http://localhost:11434' }
+            embeddingModelParams: { model: 'google embedding model', baseUrl: 'http://localhost:11434' }
         };
 
         const validOllamaProviderConfiguration: ProviderConfigurationDto = {
@@ -282,7 +452,7 @@ describe('ProviderConfigurationRepository Tests', () => {
             llmModelNames: ['model1', 'model2'],
             embeddingsModelNames: ['embedding1', 'embedding2'],
             llmModelParams: { model: 'someModel', baseUrl: 'http://localhost:11434' },
-            embeddingModelParams: { model: 'ollama embedding model',  baseUrl: 'http://localhost:11434' }
+            embeddingModelParams: { model: 'ollama embedding model', baseUrl: 'http://localhost:11434' }
         };
 
         const validOpenAIProviderConfiguration: ProviderConfigurationDto = {
@@ -290,7 +460,7 @@ describe('ProviderConfigurationRepository Tests', () => {
             llmModelNames: ['model1', 'model2'],
             embeddingsModelNames: ['embedding1', 'embedding2'],
             llmModelParams: { model: 'someModel', baseUrl: 'http://localhost:11434' },
-            embeddingModelParams: { model: 'OpenAI embedding model',  baseUrl: 'http://localhost:11434' }
+            embeddingModelParams: { model: 'OpenAI embedding model', baseUrl: 'http://localhost:11434' }
         };
 
         const invalidOpenAIProviderConfiguration: ProviderConfigurationDto = {

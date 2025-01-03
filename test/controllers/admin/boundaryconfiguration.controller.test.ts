@@ -72,7 +72,7 @@ describe('BoundaryConfigurationController', () => {
             embeddingsModelName: '',
             comments: null
         }];
-        boundaryConfigurationRepo.getBoundaryConfigurations  = jest.fn().mockResolvedValue(configurations);
+        boundaryConfigurationRepo.getBoundaryConfigurations = jest.fn().mockResolvedValue(configurations);
 
         const response = await request(app).get('/admin/boundaryconfigurations');
 
