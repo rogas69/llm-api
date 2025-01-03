@@ -9,6 +9,7 @@ import { DBContext } from "./database/dbcontext";
 import { BoundariesRepository } from "./services/data/boundariesrepository";
 import { BoundaryConfigurationRepository } from "./services/data/boundaryconfigurationrepository";
 import { DataSeedService } from "./services/dataseed.service";
+import { ProviderConfigurationRepository } from "./services/data/providerconfigurationrepository";
 /**
  * This function is responsible for loading the DI container
  * @param app - the express application
@@ -26,7 +27,7 @@ export const setupDIContainer = (app: Application) => {
 
   container.register({ boundariesRepo: asClass(BoundariesRepository).scoped() });
   container.register({ boundaryConfigurationRepo: asClass(BoundaryConfigurationRepository).scoped() });
-  
+  container.register({ providerConfigurationRepo: asClass(ProviderConfigurationRepository).scoped() });
   container.register({ dataSeedService: asClass(DataSeedService).scoped() });
 
   app.use(scopePerRequest(container));

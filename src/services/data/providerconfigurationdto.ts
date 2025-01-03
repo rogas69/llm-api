@@ -1,5 +1,5 @@
 import { OpenAIEmbeddingsParams } from "@langchain/openai";
-import { ModelProviderEmbeddingsParameters, OllamaEmbeddingsParams } from "../genaitypes";
+import { ChatModelProviderParameters, EmbeddingModelProviderParameters, OllamaEmbeddingsParams } from "../genaitypes";
 import { ModelProvider } from "../types";
 import { GoogleGenerativeAIEmbeddingsParams } from "@langchain/google-genai";
 
@@ -32,7 +32,7 @@ export class ProviderConfigurationDto {
          * [GoogleGenerativeAIChatInput](https://github.com/langchain-ai/langchainjs/blob/main/libs/langchain-google-genai/src/chat_models.ts#L81) and
          * [ChatOllamaInput](https://github.com/langchain-ai/langchainjs/blob/main/libs/langchain-ollama/src/chat_models.ts#L59)
          */
-        public readonly llmModelParams: {} | null,
+        public readonly llmModelParams: ChatModelProviderParameters,
 
         /**
          * Additional parameters that will be passed to the constructor of the embedding model. Note that baseURl is one of them.
@@ -42,7 +42,7 @@ export class ProviderConfigurationDto {
          * [OpenAIEmbeddingsParams](https://github.com/langchain-ai/langchainjs/blob/main/libs/langchain-openai/src/embeddings.ts#L17) and <br/>
          * [GoogleGenerativeAIEmbeddingsParams](https://github.com/langchain-ai/langchainjs/blob/main/libs/langchain-google-genai/src/embeddings.ts#L11) for more details
          */
-        public readonly embeddingModelParams: ModelProviderEmbeddingsParameters
+        public readonly embeddingModelParams: EmbeddingModelProviderParameters
     ) {
     }
 }

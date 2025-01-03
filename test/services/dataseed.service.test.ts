@@ -3,12 +3,15 @@ import { BoundariesRepository } from '../../src/services/data/boundariesreposito
 import { BoundaryConfigurationRepository } from '../../src/services/data/boundaryconfigurationrepository';
 import { DBContext } from '../../src/database/dbcontext';
 import { ILogger } from '../../src/services/ILogger';
+import { ProviderConfigurationRepository } from '../../src/services/data/providerconfigurationrepository';
+import { ProviderConfigurationDto } from '../../src/services/data/providerconfigurationdto';
 
 describe('DataSeedService Tests', () => {
     let dataSeedService: DataSeedService;
     let mockLogger: ILogger;
     let mockBoundariesRepo: BoundariesRepository;
     let mockBoundaryConfigurationRepo: BoundaryConfigurationRepository;
+    let mockproviderConfigurationRepo: ProviderConfigurationRepository;
     let mockDbContext: DBContext;
 
     beforeEach(() => {
@@ -26,6 +29,11 @@ describe('DataSeedService Tests', () => {
             insertBoundaryConfiguration: jest.fn()
         } as unknown as BoundaryConfigurationRepository;
 
+        mockproviderConfigurationRepo = {
+            insertProviderConfiguration: jest.fn(),
+            validateProviderConfiguration: jest.fn()
+        } as unknown as ProviderConfigurationRepository
+
         mockDbContext = {
             connectDatabase: jest.fn().mockResolvedValue({
                 collection: jest.fn().mockReturnValue({
@@ -35,9 +43,10 @@ describe('DataSeedService Tests', () => {
         } as unknown as DBContext;
 
         dataSeedService = new DataSeedService(
-            mockLogger, 
-            mockBoundariesRepo, 
-            mockBoundaryConfigurationRepo, 
+            mockLogger,
+            mockBoundariesRepo,
+            mockBoundaryConfigurationRepo,
+            mockproviderConfigurationRepo,
             mockDbContext);
     });
 
@@ -46,9 +55,10 @@ describe('DataSeedService Tests', () => {
     });
 
     it('should log messages and call cleanTestingData, seedBoundaries, and seedBoundaryConfigurations when seedData is called', async () => {
-        jest.spyOn(dataSeedService as any, 'cleanTestingData').mockImplementation(() =>jest.fn());
+        jest.spyOn(dataSeedService as any, 'cleanTestingData').mockImplementation(() => jest.fn());
         jest.spyOn(dataSeedService as any, 'seedBoundaries').mockImplementation(jest.fn());
         jest.spyOn(dataSeedService as any, 'seedBoundaryConfigurations').mockImplementation(jest.fn());
+        jest.spyOn(dataSeedService as any, 'seedProviderConfigurations').mockImplementation(jest.fn());
 
         await dataSeedService.seedData();
 
@@ -57,6 +67,7 @@ describe('DataSeedService Tests', () => {
         expect(mockLogger.log).toHaveBeenCalledWith('Seeding data...');
         expect((dataSeedService as any).seedBoundaries).toHaveBeenCalled();
         expect((dataSeedService as any).seedBoundaryConfigurations).toHaveBeenCalled();
+        expect((dataSeedService as any).seedProviderConfigurations).toHaveBeenCalled();
     });
 
     it('should clean testing data by deleting all documents in boundaries and boundary_configurations collections', async () => {
@@ -101,5 +112,39 @@ describe('DataSeedService Tests', () => {
             embeddingsModelName: "some embedding model",
             comments: null
         });
+    });
+
+    it('should seed provider configurations by inserting predefined provider configurations', async () => {
+        const providerConfigurations = [
+            new ProviderConfigurationDto(
+                'Ollama',
+                ['model1', 'model2'],
+                ['embedding1', 'embedding2'],
+                { baseUrl: 'http://localhost:11434' },
+                { baseUrl: 'http://localhost:11434', maxConcurrency: 5 }
+            ),
+            new ProviderConfigurationDto(
+                'OpenAI',
+                ['gpt-3', 'gpt-3.5'],
+                ['embedding1', 'embedding2'],
+                { apiKey: 'your-openai-api-key', model: 'gpt-3' },
+                { apiKey: 'your-openai-api-key', model: 'embedding1' }
+            ),
+            new ProviderConfigurationDto(
+                'GoogleAI',
+                ['model1', 'model2'],
+                ['embedding1', 'embedding2'],
+                { apiKey: 'your-google-api-key', model: 'model1' },
+                { apiKey: 'your-google-api-key', model: 'embedding1' }
+            )
+        ];
+
+        mockproviderConfigurationRepo.insertProviderConfiguration = jest.fn().mockResolvedValue(true);
+
+        await (dataSeedService as any).seedProviderConfigurations();
+
+        for (const config of providerConfigurations) {
+            expect(mockproviderConfigurationRepo.insertProviderConfiguration).toHaveBeenCalledWith(config);
+        }
     });
 });

@@ -1,8 +1,9 @@
-import { OpenAIEmbeddingsParams } from '@langchain/openai';
+import { ChatOpenAIFields, OpenAIEmbeddingsParams } from '@langchain/openai';
 import { ProviderConfigurationDto } from '../../src/services/data/providerconfigurationdto';
 import { OllamaEmbeddingsParams } from '../../src/services/genaitypes';
 import { ModelProvider } from '../../src/services/types';
-import { GoogleGenerativeAIEmbeddingsParams } from '@langchain/google-genai';
+import { GoogleGenerativeAIChatInput, GoogleGenerativeAIEmbeddingsParams } from '@langchain/google-genai';
+import { ChatOllamaInput } from '@langchain/ollama';
 
 
 describe('ProviderConfigurationDto Tests', () => {
@@ -10,7 +11,7 @@ describe('ProviderConfigurationDto Tests', () => {
         const modelProvider = 'Ollama' as ModelProvider;
         const llmModelNames = ['model1', 'model2'];
         const embeddingsModelNames = ['embedding1', 'embedding2'];
-        const llmModelParams = { baseUrl: 'http://localhost:11434' };
+        const llmModelParams = { baseUrl: 'http://localhost:11434' } as ChatOllamaInput;
         const embeddingModelParams = { baseUrl: 'http://localhost:11434' } as OllamaEmbeddingsParams;
 
         const providerConfigurationDto = new ProviderConfigurationDto(
@@ -28,7 +29,7 @@ describe('ProviderConfigurationDto Tests', () => {
         const modelProvider = 'OpenAI' as ModelProvider;
         const llmModelNames = ['model1', 'model2'];
         const embeddingsModelNames = ['embedding1', 'embedding2'];
-        const llmModelParams = null;
+        const llmModelParams = { baseUrl: 'http://localhost:11434' } as ChatOpenAIFields;
         const embeddingModelParams = {} as OpenAIEmbeddingsParams;
 
         const providerConfigurationDto = new ProviderConfigurationDto(
@@ -46,7 +47,7 @@ describe('ProviderConfigurationDto Tests', () => {
         const modelProvider = 'GoogleAI' as ModelProvider;
         const llmModelNames = ['model1', 'model2'];
         const embeddingsModelNames = ['embedding1', 'embedding2'];
-        const llmModelParams = null;
+        const llmModelParams = { baseUrl: 'http://localhost:11434' } as  GoogleGenerativeAIChatInput;
         const embeddingModelParams = {} as GoogleGenerativeAIEmbeddingsParams;
 
         const providerConfigurationDto = new ProviderConfigurationDto(

@@ -2,9 +2,10 @@
  * This file contains the types used to create and configure chat and embedding models
  */
 
-import {EmbeddingsParams } from "@langchain/core/embeddings";
-import { GoogleGenerativeAIEmbeddingsParams } from "@langchain/google-genai";
-import { OpenAIEmbeddingsParams } from "@langchain/openai";
+import { EmbeddingsParams } from "@langchain/core/embeddings";
+import { GoogleGenerativeAIChatInput, GoogleGenerativeAIEmbeddingsParams } from "@langchain/google-genai";
+import { ChatOllamaInput } from "@langchain/ollama";
+import { ChatOpenAIFields, OpenAIEmbeddingsParams } from "@langchain/openai";
 
 /**
  * This type shadows the interface defined in the @langchainn/ollama package, because the original interface is not exported.
@@ -22,30 +23,30 @@ export interface OllamaEmbeddingsParams extends EmbeddingsParams {
      * @default "mxbai-embed-large"
      */
     model?: string;
-  
+
     /**
      * Base URL of the Ollama server
      * @default "http://localhost:11434"
      */
     baseUrl?: string;
-  
+
     /**
      * Defaults to "5m"
      */
     keepAlive?: string | number;
-  
+
     /**
      * Whether or not to truncate the input text to fit inside the model's
      * context window.
      * @default false
      */
     truncate?: boolean;
-  
+
     /**
      * Optional HTTP Headers to include in the request.
      */
     headers?: Headers | Record<string, string>;
-  
+
     /**
      * Advanced Ollama API request parameters in camelCase, see
      * https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values
@@ -56,9 +57,21 @@ export interface OllamaEmbeddingsParams extends EmbeddingsParams {
      */
     //requestOptions?: OllamaCamelCaseOptions & Partial<OllamaOptions>;
     requestOptions?: {};
-  }
+}
 
-  export type ModelProviderEmbeddingsParameters = 
-    OllamaEmbeddingsParams 
-    | OpenAIEmbeddingsParams 
+/**
+ * Used to define the type of the embedding model parameters for different providers.
+ */
+export type EmbeddingModelProviderParameters =
+    OllamaEmbeddingsParams
+    | OpenAIEmbeddingsParams
     | GoogleGenerativeAIEmbeddingsParams;
+
+
+/**
+ * Used to define the type of the chat model parameters for different providers.
+ */
+export type ChatModelProviderParameters =
+    ChatOpenAIFields
+    | GoogleGenerativeAIChatInput
+    | ChatOllamaInput;
