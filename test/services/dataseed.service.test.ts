@@ -1,10 +1,12 @@
 import { DataSeedService } from '../../src/services/dataseed.service';
-import { BoundaryRepository } from '../../src/services/data/boundaryrepository';
-import { BoundaryConfigurationRepository } from '../../src/services/data/boundaryconfigurationrepository';
+import { BoundaryRepository } from '../../src/services/data/boundary.repository';
+import { BoundaryConfigurationRepository } from '../../src/services/data/boundaryconfiguration.repository';
 import { DBContext } from '../../src/database/dbcontext';
 import { ILogger } from '../../src/services/ILogger';
-import { ProviderConfigurationRepository } from '../../src/services/data/providerconfigurationrepository';
+import { ProviderConfigurationRepository } from '../../src/services/data/providerconfiguration.repository';
 import { ProviderConfigurationDto } from '../../src/services/data/providerconfigurationdto';
+import { EntitlementRepository } from '../../src/services/data/entitlements.repository';
+import { EntitlementDTO } from '../../src/services/data/entitlementdto';
 
 describe('DataSeedService Tests', () => {
     let dataSeedService: DataSeedService;
@@ -12,6 +14,7 @@ describe('DataSeedService Tests', () => {
     let mockBoundaryRepo: BoundaryRepository;
     let mockBoundaryConfigurationRepo: BoundaryConfigurationRepository;
     let mockproviderConfigurationRepo: ProviderConfigurationRepository;
+    let mockEntitlementRepo: EntitlementRepository;
     let mockDbContext: DBContext;
 
     beforeEach(() => {
@@ -34,6 +37,10 @@ describe('DataSeedService Tests', () => {
             validateProviderConfiguration: jest.fn()
         } as unknown as ProviderConfigurationRepository
 
+        mockEntitlementRepo = {
+            insertEntitlement: jest.fn()
+        } as unknown as EntitlementRepository;
+
         mockDbContext = {
             connectDatabase: jest.fn().mockResolvedValue({
                 collection: jest.fn().mockReturnValue({
@@ -47,6 +54,7 @@ describe('DataSeedService Tests', () => {
             mockBoundaryRepo,
             mockBoundaryConfigurationRepo,
             mockproviderConfigurationRepo,
+            mockEntitlementRepo,
             mockDbContext);
     });
 
@@ -145,6 +153,20 @@ describe('DataSeedService Tests', () => {
 
         for (const config of providerConfigurations) {
             expect(mockproviderConfigurationRepo.insertProviderConfiguration).toHaveBeenCalledWith(config);
+        }
+    });
+
+    it('should seed entitlements by inserting predefined entitlements', async () => {
+        const entitlements: EntitlementDTO[] = [
+            { userid: 'user1', roles: ['admin'], boundaries: [] },
+            { userid: 'user2', roles: ['admin', 'user'], boundaries: ['boundary2', 'boundary3'] },
+            { userid: 'user3', roles: ['user'], boundaries: ['boundary1', 'boundary3'] }
+        ];
+
+        await (dataSeedService as any).seedEntitlements();
+
+        for (const entitlement of entitlements) {
+            expect(mockEntitlementRepo.insertEntitlement).toHaveBeenCalledWith(entitlement);
         }
     });
 });

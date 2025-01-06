@@ -1,12 +1,12 @@
 import * as express from 'express';
 import { DELETE, GET, POST, PUT, route } from "awilix-express";
 import { ILogger } from '../../services/ILogger';
-import { BoundaryConfigurationRepository } from '../../services/data/boundaryconfigurationrepository';
+import { BoundaryConfigurationRepository } from '../../services/data/boundaryconfiguration.repository';
 import { BoundaryConfigurationDto } from '../../services/data/boundaryconfigurationdto';
 import { HttpStatus } from 'http-status-ts';
 
 /**
- * Controller used to configure deaults like models to use, perhaps prompt templates etc.
+ * Controller used to configure boundary defaults like models to use, perhaps prompt templates etc.
  */
 @route('/admin/boundaryconfigurations')
 export class BoundaryConfigurationController {

@@ -2,7 +2,7 @@ import * as express from 'express';
 import { DELETE, GET, POST, PUT, route } from "awilix-express";
 import { ILogger } from '../../services/ILogger';
 import { HttpStatus } from 'http-status-ts';
-import { ProviderConfigurationRepository } from '../../services/data/providerconfigurationrepository';
+import { ProviderConfigurationRepository } from '../../services/data/providerconfiguration.repository';
 
 /**
  * Controller used to configure default configuration parameters for embedding and chat models for different providers.

@@ -2,7 +2,7 @@ import * as express from 'express';
 
 import { HttpStatus } from 'http-status-ts';
 import { ILogger } from '../../../src/services/ILogger';
-import { BoundaryRepository } from '../../../src/services/data/boundaryrepository';
+import { BoundaryRepository } from '../../../src/services/data/boundary.repository';
 import { BoundaryController } from '../../../src/controllers/admin/boundary.controller';
 
 describe('BoundariesController Tests', () => {

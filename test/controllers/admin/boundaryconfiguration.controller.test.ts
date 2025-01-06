@@ -3,7 +3,7 @@ import request from 'supertest';
 import { createContainer, asClass, asValue, asFunction } from 'awilix';
 import { scopePerRequest, controller } from 'awilix-express';
 import { BoundaryConfigurationController } from '../../../src/controllers/admin/boundaryconfiguration.controller';
-import { BoundaryConfigurationRepository } from '../../../src/services/data/boundaryconfigurationrepository';
+import { BoundaryConfigurationRepository } from '../../../src/services/data/boundaryconfiguration.repository';
 import { ILogger } from '../../../src/services/ILogger';
 import { BoundaryConfigurationDto } from '../../../src/services/data/boundaryconfigurationdto';
 import { HttpStatus } from 'http-status-ts';

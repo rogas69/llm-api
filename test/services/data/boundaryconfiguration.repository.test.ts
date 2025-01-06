@@ -1,7 +1,7 @@
 
 import { ILogger } from '../../../src/services/ILogger';
 import { DBContext } from '../../../src/database/dbcontext';
-import { BoundaryConfigurationRepository } from '../../../src/services/data/boundaryconfigurationrepository';
+import { BoundaryConfigurationRepository } from '../../../src/services/data/boundaryconfiguration.repository';
 import { BoundaryConfigurationDto } from '../../../src/services/data/boundaryconfigurationdto';
 import { ModelProvider } from '../../../src/services/types';
 import { Collection, Db, FindCursor } from 'mongodb';

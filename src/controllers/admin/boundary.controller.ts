@@ -1,11 +1,14 @@
 import * as express from 'express';
 import { DELETE, GET, POST, PUT, route } from "awilix-express";
 import { ILogger } from '../../services/ILogger';
-import { BoundaryRepository } from '../../services/data/boundaryrepository';
+import { BoundaryRepository } from '../../services/data/boundary.repository';
 import { HttpStatus } from 'http-status-ts';
 import { BoundaryDto } from '../../services/data/boundarydto';
 
 
+/**
+ * Controller used to administer boundaries (CRUD)
+ */
 @route('/admin/boundaries')
 export class BoundaryController {
     constructor(

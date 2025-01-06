@@ -3,7 +3,7 @@ import request from 'supertest';
 import { asClass, asFunction, asValue, createContainer } from 'awilix';
 import { scopePerRequest, controller } from 'awilix-express';
 import { ProviderConfigurationController } from '../../../src/controllers/admin/providerconfiguration.controller';
-import { ProviderConfigurationRepository } from '../../../src/services/data/providerconfigurationrepository';
+import { ProviderConfigurationRepository } from '../../../src/services/data/providerconfiguration.repository';
 import { ILogger } from '../../../src/services/ILogger';
 import { HttpStatus } from 'http-status-ts';
 
