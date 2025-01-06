@@ -1,5 +1,5 @@
 import { DBContext } from "../database/dbcontext";
-import { BoundariesRepository } from "./data/boundariesrepository";
+import { BoundaryRepository } from "./data/boundaryrepository";
 import { BoundaryConfigurationRepository } from "./data/boundaryconfigurationrepository";
 import { ProviderConfigurationDto } from "./data/providerconfigurationdto";
 import { ProviderConfigurationRepository } from "./data/providerconfigurationrepository";
@@ -11,7 +11,7 @@ import { ILogger } from "./ILogger";
 export class DataSeedService {
     constructor(
         private readonly logger: ILogger,
-        private readonly boundariesRepo: BoundariesRepository,
+        private readonly boundaryRepo: BoundaryRepository,
         private readonly boundaryConfigurationRepo: BoundaryConfigurationRepository,
         private readonly providerConfigurationRepo: ProviderConfigurationRepository,
         private readonly dbContext: DBContext
@@ -39,9 +39,9 @@ export class DataSeedService {
     };
 
     private async seedBoundaries(): Promise<void> {
-        await this.boundariesRepo.insertBoundary({ name: 'alpha', description: 'Test boundary 1' });
-        await this.boundariesRepo.insertBoundary({ name: 'beta', description: 'Test boundary 2' });
-        await this.boundariesRepo.insertBoundary({ name: 'gamma', description: 'Test boundary 3' });
+        await this.boundaryRepo.insertBoundary({ name: 'alpha', description: 'Test boundary 1' });
+        await this.boundaryRepo.insertBoundary({ name: 'beta', description: 'Test boundary 2' });
+        await this.boundaryRepo.insertBoundary({ name: 'gamma', description: 'Test boundary 3' });
     }
 
     private async seedBoundaryConfigurations(): Promise<void> {

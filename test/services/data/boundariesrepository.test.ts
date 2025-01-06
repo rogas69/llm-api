@@ -1,4 +1,4 @@
-import { BoundariesRepository } from '../../../src/services/data/boundariesrepository';
+import { BoundaryRepository } from '../../../src/services/data/boundaryrepository';
 import { DBContext } from '../../../src/database/dbcontext';
 import { Db, Collection } from 'mongodb';
 import { ILogger } from '../../../src/services/ILogger';
@@ -11,7 +11,7 @@ describe('BoundariesRepository Tests', () => {
     let db: Db;
     let collection: Collection;
     let logger: ILogger;
-    let rolesRepository: BoundariesRepository;
+    let rolesRepository: BoundaryRepository;
     
     const boundary: BoundaryDto = { name: 'admin', description: 'some description' };
 
@@ -48,7 +48,7 @@ describe('BoundariesRepository Tests', () => {
             [Symbol.dispose]: jest.fn(),
         } as unknown as DBContext;
 
-        rolesRepository = new BoundariesRepository(logger, dbContext);
+        rolesRepository = new BoundaryRepository(logger, dbContext);
     });
 
     it('should get all boundaries', async () => {

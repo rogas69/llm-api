@@ -10,7 +10,7 @@ import { HttpStatus } from 'http-status-ts';
 describe('ProviderConfigurationController', () => {
     let app: express.Application;
     let logger: ILogger;
-    let providerRepository: ProviderConfigurationRepository;
+    let providerConfigurationRepo: ProviderConfigurationRepository;
     //let controller: ProviderConfigurationController;
 
     beforeEach(() => {
@@ -25,7 +25,7 @@ describe('ProviderConfigurationController', () => {
             error: jest.fn(),
         } as unknown as ILogger;
 
-        providerRepository = {
+        providerConfigurationRepo = {
             getProviderConfigurations: jest.fn(),
             getProviderEmbeddingModels: jest.fn(),
             getProviderChatModels: jest.fn(),
@@ -33,8 +33,8 @@ describe('ProviderConfigurationController', () => {
 
         container.register({
             logger: asFunction(() => logger).scoped(),
-            providerRepository: asValue<ProviderConfigurationRepository>(providerRepository),
-            boundaryConfigurationController: asClass(ProviderConfigurationController).singleton()
+            providerConfigurationRepo: asValue<ProviderConfigurationRepository>(providerConfigurationRepo),
+            providerConfigurationController: asClass(ProviderConfigurationController).singleton()
         });
 
         app.use(scopePerRequest(container));
@@ -51,7 +51,7 @@ describe('ProviderConfigurationController', () => {
             llmModelParams: {},
             embeddingModelParams: {}
         }];
-        providerRepository.getProviderConfigurations = jest.fn().mockResolvedValue(configurations);
+        providerConfigurationRepo.getProviderConfigurations = jest.fn().mockResolvedValue(configurations);
 
         const response = await request(app).get('/admin/providerconfigurations');
 
@@ -68,7 +68,7 @@ describe('ProviderConfigurationController', () => {
             llmModelParams: {},
             embeddingModelParams: {}
         }];
-        providerRepository.getProviderConfigurations = jest.fn().mockRejectedValue(new Error("This is a test exception"));
+        providerConfigurationRepo.getProviderConfigurations = jest.fn().mockRejectedValue(new Error("This is a test exception"));
 
         const response = await request(app).get('/admin/providerconfigurations');
 
@@ -78,7 +78,7 @@ describe('ProviderConfigurationController', () => {
 
     it('should get embedding models for provider', async () => {
         const models = ['embedding1', 'embedding2'];
-        (providerRepository.getProviderEmbeddingModels as jest.Mock).mockResolvedValue(models);
+        (providerConfigurationRepo.getProviderEmbeddingModels as jest.Mock).mockResolvedValue(models);
 
         const response = await request(app).get('/admin/providerconfigurations/OpenAI/embeddingmodels');
 
@@ -89,7 +89,7 @@ describe('ProviderConfigurationController', () => {
 
     it('should get chat models for provider', async () => {
         const models = ['gpt-3', 'gpt-3.5'];
-        (providerRepository.getProviderChatModels as jest.Mock).mockResolvedValue(models);
+        (providerConfigurationRepo.getProviderChatModels as jest.Mock).mockResolvedValue(models);
 
         const response = await request(app).get('/admin/providerconfigurations/OpenAI/chatmodels');
 
@@ -100,7 +100,7 @@ describe('ProviderConfigurationController', () => {
 
     it('should get embedding model parameters for provider', async () => {
         const configurations = [{ modelProvider: 'OpenAI', llmModelNames: ['gpt-3'], embeddingsModelNames: ['embedding1'], llmModelParams: {}, embeddingModelParams: { baseUrl: 'http://localhost' } }];
-        (providerRepository.getProviderConfigurations as jest.Mock).mockResolvedValue(configurations);
+        (providerConfigurationRepo.getProviderConfigurations as jest.Mock).mockResolvedValue(configurations);
 
         const response = await request(app).get('/admin/providerconfigurations/OpenAI/embeddingmodelparameters');
 
@@ -110,7 +110,7 @@ describe('ProviderConfigurationController', () => {
     });
 
     it('should return 404 if no embedding model parameters found for provider', async () => {
-        (providerRepository.getProviderConfigurations as jest.Mock).mockResolvedValue([]);
+        (providerConfigurationRepo.getProviderConfigurations as jest.Mock).mockResolvedValue([]);
 
         const response = await request(app).get('/admin/providerconfigurations/OpenAI/embeddingmodelparameters');
 
@@ -120,7 +120,7 @@ describe('ProviderConfigurationController', () => {
 
     it('should get llm model parameters for provider', async () => {
         const configurations = [{ modelProvider: 'OpenAI', llmModelNames: ['gpt-3'], embeddingsModelNames: ['embedding1'], llmModelParams: { apiKey: 'key' }, embeddingModelParams: {} }];
-        (providerRepository.getProviderConfigurations as jest.Mock).mockResolvedValue(configurations);
+        (providerConfigurationRepo.getProviderConfigurations as jest.Mock).mockResolvedValue(configurations);
 
         const response = await request(app).get('/admin/providerconfigurations/OpenAI/llmmodelparameters');
 
@@ -130,7 +130,7 @@ describe('ProviderConfigurationController', () => {
     });
 
     it('should return 404 if no llm model parameters found for provider', async () => {
-        (providerRepository.getProviderConfigurations as jest.Mock).mockResolvedValue([]);
+        (providerConfigurationRepo.getProviderConfigurations as jest.Mock).mockResolvedValue([]);
 
         const response = await request(app).get('/admin/providerconfigurations/OpenAI/llmmodelparameters');
 

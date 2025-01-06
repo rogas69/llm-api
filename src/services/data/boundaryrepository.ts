@@ -2,7 +2,7 @@ import { DBContext } from "../../database/dbcontext";
 import { ILogger } from "../ILogger";
 import { BoundaryDto } from "./boundarydto";
 
-export class BoundariesRepository implements Disposable {
+export class BoundaryRepository implements Disposable {
 
     private readonly collectionName: string = 'boundaries';
 

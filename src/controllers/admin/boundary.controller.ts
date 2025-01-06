@@ -1,21 +1,21 @@
 import * as express from 'express';
 import { DELETE, GET, POST, PUT, route } from "awilix-express";
 import { ILogger } from '../../services/ILogger';
-import { BoundariesRepository } from '../../services/data/boundariesrepository';
+import { BoundaryRepository } from '../../services/data/boundaryrepository';
 import { HttpStatus } from 'http-status-ts';
 import { BoundaryDto } from '../../services/data/boundarydto';
 
 
 @route('/admin/boundaries')
-export class BoundariesController {
+export class BoundaryController {
     constructor(
         private readonly logger: ILogger,
-        private readonly boundariesRepo: BoundariesRepository) { }
+        private readonly boundaryRepo: BoundaryRepository) { }
 
     @GET()
     async getAllBoundaries(req: express.Request, res: express.Response) {
         this.logger.log('getAllBoundaries called;');
-        const boundaries: BoundaryDto[] = await this.boundariesRepo.getAllBoundaries();
+        const boundaries: BoundaryDto[] = await this.boundaryRepo.getAllBoundaries();
         res.status(HttpStatus.OK)
             .json({ boundaries: boundaries });
     }
@@ -26,7 +26,7 @@ export class BoundariesController {
     async getBoundaryByName(req: express.Request, res: express.Response) {
         const name = req.params.name;
         this.logger.log(`getBoundaryByName called with name: ${name}`);
-        const boundaries: BoundaryDto[] = await this.boundariesRepo.getBoundaryByName(name);
+        const boundaries: BoundaryDto[] = await this.boundaryRepo.getBoundaryByName(name);
         res.status(HttpStatus.OK).json({ boundaries: boundaries });
     }
 
@@ -35,7 +35,7 @@ export class BoundariesController {
     async addBoundary(req: express.Request, res: express.Response) {
         const newBoundary = req.body as unknown as BoundaryDto;
         this.logger.log(`addBoundary called with boundary: ${newBoundary.name}`);
-        res.status(await this.boundariesRepo.insertBoundary(newBoundary) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST)
+        res.status(await this.boundaryRepo.insertBoundary(newBoundary) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST)
            .send();
     }
 
@@ -45,7 +45,7 @@ export class BoundariesController {
         const updateBoundary = req.body as unknown as BoundaryDto;
         this.logger.log(`updateBoundary called with boundary: ${updateBoundary.name}`);
 
-        res.status(await this.boundariesRepo.updateBoundary(updateBoundary) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST)
+        res.status(await this.boundaryRepo.updateBoundary(updateBoundary) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST)
            .send();
     }
 
@@ -56,7 +56,7 @@ export class BoundariesController {
         const name = req.params.name;
         this.logger.log(`deleteBoundaryByName called with name: ${name}`);
         
-        res.status(await this.boundariesRepo.deleteBoundaryByName(name) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST)
+        res.status(await this.boundaryRepo.deleteBoundaryByName(name) ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST)
            .send();
     }
 }

@@ -2,15 +2,15 @@ import * as express from 'express';
 
 import { HttpStatus } from 'http-status-ts';
 import { ILogger } from '../../../src/services/ILogger';
-import { BoundariesRepository } from '../../../src/services/data/boundariesrepository';
-import { BoundariesController } from '../../../src/controllers/admin/boundaries.controller';
+import { BoundaryRepository } from '../../../src/services/data/boundaryrepository';
+import { BoundaryController } from '../../../src/controllers/admin/boundary.controller';
 
 describe('BoundariesController Tests', () => {
     let logger: ILogger;
-    let repo: BoundariesRepository;
-    let repoNotFound: BoundariesRepository;
-    let controller: BoundariesController;
-    let controllerNotFound: BoundariesController;
+    let repo: BoundaryRepository;
+    let repoNotFound: BoundaryRepository;
+    let controller: BoundaryController;
+    let controllerNotFound: BoundaryController;
     let req: express.Request;
     let res: express.Response;
 
@@ -29,7 +29,7 @@ describe('BoundariesController Tests', () => {
             deleteBoundaryByName: jest.fn()
                 .mockResolvedValue(undefined)
                 .mockReturnValue(true),
-        } as unknown as BoundariesRepository;
+        } as unknown as BoundaryRepository;
 
         repoNotFound = {
             getAllBoundaries: jest.fn().mockResolvedValue([{ name: 'admin', description: 'some description' }]),
@@ -39,12 +39,12 @@ describe('BoundariesController Tests', () => {
             deleteBoundaryByName: jest.fn()
                 .mockResolvedValue(undefined)
                 .mockReturnValue(false),
-        } as unknown as BoundariesRepository;
+        } as unknown as BoundaryRepository;
 
-        controller = new BoundariesController(logger, repo);
+        controller = new BoundaryController(logger, repo);
 
         //used for not found scenarios in the database
-        controllerNotFound = new BoundariesController(logger, repoNotFound);
+        controllerNotFound = new BoundaryController(logger, repoNotFound);
 
         req = {
             params: {},

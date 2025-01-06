@@ -11,7 +11,7 @@ import { ProviderConfigurationRepository } from '../../services/data/providercon
 export class ProviderConfigurationController {
     constructor(
         private readonly logger: ILogger,
-        private readonly providerRepository: ProviderConfigurationRepository) { }
+        private readonly providerConfigurationRepo: ProviderConfigurationRepository) { }
 
 
     @GET()
@@ -19,11 +19,12 @@ export class ProviderConfigurationController {
         try {
             this.logger.log('getProviderConfigurations called;');
             const providerName = req.query.providerName as string  | undefined;
-            const configurations = await this.providerRepository.getProviderConfigurations({ modelProvider: providerName });
+            const configurations = await this.providerConfigurationRepo.getProviderConfigurations({ modelProvider: providerName });
             res.status(HttpStatus.OK)
                 .json({ configurations: configurations });
         } catch (error) {
-            this.logger.error(`Error getting provider configurations: ${error}`);
+            const err : Error = error as Error;
+            this.logger.error(`Error getting provider configurations: ${err.message}`);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .send();
         }
@@ -34,7 +35,7 @@ export class ProviderConfigurationController {
     async getEmbeddingModelsForProvider(req: express.Request, res: express.Response) {
         this.logger.log('getEmbeddingModelsForProvider called;');
         const providerName = req.params.name;
-        const models = await this.providerRepository.getProviderEmbeddingModels({ modelProvider: providerName });
+        const models = await this.providerConfigurationRepo.getProviderEmbeddingModels({ modelProvider: providerName });
         res.status(HttpStatus.OK)
             .json({ embeddingmodels: models });
     }
@@ -44,7 +45,7 @@ export class ProviderConfigurationController {
     async getChatModelsForProvider(req: express.Request, res: express.Response) {
         this.logger.log('getEmbeddingModelsForProvider called;');
         const providerName = req.params.name;
-        const models = await this.providerRepository.getProviderChatModels({ modelProvider: providerName });
+        const models = await this.providerConfigurationRepo.getProviderChatModels({ modelProvider: providerName });
         res.status(HttpStatus.OK)
             .json({ chatmodels: models });
     }
@@ -54,7 +55,7 @@ export class ProviderConfigurationController {
     async getEmbeddingModelParametersForProvider(req: express.Request, res: express.Response) {
         this.logger.log('getEmbeddingModelsForProvider called;');
         const providerName = req.params.name;
-        const models = await this.providerRepository.getProviderConfigurations({ modelProvider: providerName });
+        const models = await this.providerConfigurationRepo.getProviderConfigurations({ modelProvider: providerName });
         if(models.length === 0) {
             res.status(HttpStatus.NOT_FOUND)
                 .send();
@@ -68,7 +69,7 @@ export class ProviderConfigurationController {
     async getLlmModelParametersForProvider(req: express.Request, res: express.Response) {
         this.logger.log('getEmbeddingModelsForProvider called;');
         const providerName = req.params.name;
-        const models = await this.providerRepository.getProviderConfigurations({ modelProvider: providerName });
+        const models = await this.providerConfigurationRepo.getProviderConfigurations({ modelProvider: providerName });
         if(models.length === 0) {
             res.status(HttpStatus.NOT_FOUND)
                 .send();

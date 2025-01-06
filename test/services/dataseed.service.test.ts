@@ -1,5 +1,5 @@
 import { DataSeedService } from '../../src/services/dataseed.service';
-import { BoundariesRepository } from '../../src/services/data/boundariesrepository';
+import { BoundaryRepository } from '../../src/services/data/boundaryrepository';
 import { BoundaryConfigurationRepository } from '../../src/services/data/boundaryconfigurationrepository';
 import { DBContext } from '../../src/database/dbcontext';
 import { ILogger } from '../../src/services/ILogger';
@@ -9,7 +9,7 @@ import { ProviderConfigurationDto } from '../../src/services/data/providerconfig
 describe('DataSeedService Tests', () => {
     let dataSeedService: DataSeedService;
     let mockLogger: ILogger;
-    let mockBoundariesRepo: BoundariesRepository;
+    let mockBoundaryRepo: BoundaryRepository;
     let mockBoundaryConfigurationRepo: BoundaryConfigurationRepository;
     let mockproviderConfigurationRepo: ProviderConfigurationRepository;
     let mockDbContext: DBContext;
@@ -21,9 +21,9 @@ describe('DataSeedService Tests', () => {
             error: jest.fn()
         };
 
-        mockBoundariesRepo = {
+        mockBoundaryRepo = {
             insertBoundary: jest.fn()
-        } as unknown as BoundariesRepository;
+        } as unknown as BoundaryRepository;
 
         mockBoundaryConfigurationRepo = {
             insertBoundaryConfiguration: jest.fn()
@@ -44,7 +44,7 @@ describe('DataSeedService Tests', () => {
 
         dataSeedService = new DataSeedService(
             mockLogger,
-            mockBoundariesRepo,
+            mockBoundaryRepo,
             mockBoundaryConfigurationRepo,
             mockproviderConfigurationRepo,
             mockDbContext);
@@ -81,9 +81,9 @@ describe('DataSeedService Tests', () => {
     it('should seed boundaries by inserting predefined boundaries', async () => {
         await (dataSeedService as any).seedBoundaries();
 
-        expect(mockBoundariesRepo.insertBoundary).toHaveBeenCalledWith({ name: 'alpha', description: 'Test boundary 1' });
-        expect(mockBoundariesRepo.insertBoundary).toHaveBeenCalledWith({ name: 'beta', description: 'Test boundary 2' });
-        expect(mockBoundariesRepo.insertBoundary).toHaveBeenCalledWith({ name: 'gamma', description: 'Test boundary 3' });
+        expect(mockBoundaryRepo.insertBoundary).toHaveBeenCalledWith({ name: 'alpha', description: 'Test boundary 1' });
+        expect(mockBoundaryRepo.insertBoundary).toHaveBeenCalledWith({ name: 'beta', description: 'Test boundary 2' });
+        expect(mockBoundaryRepo.insertBoundary).toHaveBeenCalledWith({ name: 'gamma', description: 'Test boundary 3' });
     });
 
     it('should seed boundary configurations by inserting predefined boundary configurations', async () => {

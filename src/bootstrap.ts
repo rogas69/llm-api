@@ -6,7 +6,7 @@ import { ILogger } from "./services/ILogger";
 import { MongoClient } from "mongodb";
 import { DBContext } from "./database/dbcontext";
 
-import { BoundariesRepository } from "./services/data/boundariesrepository";
+import { BoundaryRepository } from "./services/data/boundaryrepository";
 import { BoundaryConfigurationRepository } from "./services/data/boundaryconfigurationrepository";
 import { DataSeedService } from "./services/dataseed.service";
 import { ProviderConfigurationRepository } from "./services/data/providerconfigurationrepository";
@@ -25,9 +25,10 @@ export const setupDIContainer = (app: Application) => {
   container.register({ dbName: asValue<string>(process.env.DB_NAME!) });
   container.register({ dbContext: asClass(DBContext).scoped() });
 
-  container.register({ boundariesRepo: asClass(BoundariesRepository).scoped() });
+  container.register({ boundaryRepo: asClass(BoundaryRepository).scoped() });
   container.register({ boundaryConfigurationRepo: asClass(BoundaryConfigurationRepository).scoped() });
   container.register({ providerConfigurationRepo: asClass(ProviderConfigurationRepository).scoped() });
+  
   container.register({ dataSeedService: asClass(DataSeedService).scoped() });
 
   app.use(scopePerRequest(container));
