@@ -34,7 +34,6 @@ export const setupDIContainer = (app: Application) => {
 
   container.register({ dataSeedService: asClass(DataSeedService).scoped() });
 
-  app.use(scopePerRequest(container));
-
+  
   return container;
 }

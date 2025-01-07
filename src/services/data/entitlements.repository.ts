@@ -6,7 +6,7 @@ import { EntitlementDTO } from "./entitlementdto";
  * Entitlement Repository to manage and check entitlements of users.
  */
 export class EntitlementRepository {
-    
+
     constructor(
         private readonly dbContext: DBContext
     ) { }
@@ -16,14 +16,11 @@ export class EntitlementRepository {
      * @param userId - the user id to check
      * @returns true if the user is in the role, false otherwise
      */
-    isInRole(userId: string, role: string): Promise<boolean> {
-        return this.dbContext
-            .connectDatabase()
-            .then(async db => {
-                const entitlement: EntitlementDTO | null = await db.collection<EntitlementDTO>('entitlements')
-                    .findOne({ userid: userId });
-                return entitlement?.roles.includes(role) ?? false;
-            });
+    async isInRole(userId: string, role: string): Promise<boolean> {
+        const db = await this.dbContext.connectDatabase();
+        const entitlement: EntitlementDTO | null = await db.collection<EntitlementDTO>('entitlements')
+            .findOne({ userid: userId });
+        return entitlement?.roles.includes(role) ?? false;
     }
 
     /**
@@ -31,15 +28,11 @@ export class EntitlementRepository {
      * @param userId - the user id to check
      * @returns true if the user is in the boundary, false otherwise
      */
-    isInBoundary(userId: string, boundary: string): Promise<boolean> {
-        return this.dbContext
-            .connectDatabase()
-            .then(async db => {
-                const entitlement: EntitlementDTO | null = await db.collection<EntitlementDTO>('entitlements')
-                    .findOne({ userid: userId });
-                return entitlement?.boundaries.includes(boundary) ?? false;
-            });
-
+    async isInBoundary(userId: string, boundary: string): Promise<boolean> {
+        const db = await this.dbContext.connectDatabase();
+        const entitlement: EntitlementDTO | null = await db.collection<EntitlementDTO>('entitlements')
+            .findOne({ userid: userId });
+        return entitlement?.boundaries.includes(boundary) ?? false;
     }
 
     async insertEntitlement(entitlement: EntitlementDTO): Promise<boolean> {

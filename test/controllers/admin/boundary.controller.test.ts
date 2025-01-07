@@ -1,166 +1,250 @@
-import * as express from 'express';
-
-import { HttpStatus } from 'http-status-ts';
-import { ILogger } from '../../../src/services/ILogger';
-import { BoundaryRepository } from '../../../src/services/data/boundary.repository';
+import express from 'express';
+import request from 'supertest';
+import { createContainer, asClass, asValue, asFunction } from 'awilix';
+import { scopePerRequest, controller } from 'awilix-express';
 import { BoundaryController } from '../../../src/controllers/admin/boundary.controller';
+import { BoundaryRepository } from '../../../src/services/data/boundary.repository';
+import { EntitlementRepository } from '../../../src/services/data/entitlements.repository';
+import { ILogger } from '../../../src/services/ILogger';
+import { BoundaryDto } from '../../../src/services/data/boundarydto';
+import { HttpStatus } from 'http-status-ts';
+import { AuthorizationService } from '../../../src/services/authorization.service';
 
-describe('BoundariesController Tests', () => {
+describe('BoundaryController', () => {
+    let app: express.Application;
     let logger: ILogger;
-    let repo: BoundaryRepository;
-    let repoNotFound: BoundaryRepository;
-    let controller: BoundaryController;
-    let controllerNotFound: BoundaryController;
-    let req: express.Request;
-    let res: express.Response;
+    let boundaryRepo: BoundaryRepository;
+    let authorizationService: AuthorizationService;
+    //let controller: BoundaryController;
 
     beforeEach(() => {
+        const container = createContainer({ injectionMode: 'CLASSIC' });
+
         logger = {
             log: jest.fn(),
-            error: jest.fn(),
             warn: jest.fn(),
-        };
+            error: jest.fn(),
+        } as unknown as ILogger;
 
-        repo = {
-            getAllBoundaries: jest.fn().mockResolvedValue([{ name: 'admin', description: 'some description' }]),
-            getBoundaryByName: jest.fn().mockResolvedValue([{ name: 'admin', description: 'some description' }]),
-            insertBoundary: jest.fn().mockResolvedValue(undefined).mockReturnValue(true),
-            updateBoundary: jest.fn().mockResolvedValue(true),
-            deleteBoundaryByName: jest.fn()
-                .mockResolvedValue(undefined)
-                .mockReturnValue(true),
+        boundaryRepo = {
+            getAllBoundaries: jest.fn(),
+            getBoundaryByName: jest.fn(),
+            insertBoundary: jest.fn(),
+            updateBoundary: jest.fn(),
+            deleteBoundaryByName: jest.fn(),
         } as unknown as BoundaryRepository;
 
-        repoNotFound = {
-            getAllBoundaries: jest.fn().mockResolvedValue([{ name: 'admin', description: 'some description' }]),
-            getBoundaryByName: jest.fn().mockResolvedValue([]),
-            insertBoundary: jest.fn().mockResolvedValue(undefined),
-            updateBoundary: jest.fn().mockResolvedValue(true),
-            deleteBoundaryByName: jest.fn()
-                .mockResolvedValue(undefined)
-                .mockReturnValue(false),
-        } as unknown as BoundaryRepository;
 
-        controller = new BoundaryController(logger, repo);
+        authorizationService = {
+            authorizeRole: jest.fn(),
+            authorizeBoundary: jest.fn(),
+        } as unknown as AuthorizationService;
 
-        //used for not found scenarios in the database
-        controllerNotFound = new BoundaryController(logger, repoNotFound);
+        app = express();
+        app.use(express.json());
 
-        req = {
-            params: {},
-            body: {},
-        } as unknown as express.Request;
+        container.register({
+            logger: asFunction(() => logger).scoped(),
+            boundaryRepo: asValue(boundaryRepo),
+            boundaryController: asClass(BoundaryController),
+            requiredRolles: asValue(['admin', 'user']),
+            requiredBoundaries: asValue(['boundary1', 'boundary2']),
+            authorizationService: asValue(authorizationService),
+        });
 
-        res = {
-            status: jest.fn()
-            .mockResolvedValue(undefined)
-            .mockReturnThis(),
-            send: jest.fn().mockResolvedValue(undefined),
-            json: jest.fn().mockReturnThis(),
-        } as unknown as express.Response;
+        app.use(scopePerRequest(container));
+
+        const router = controller(BoundaryController);
+        app.use(router);
     });
 
-    it('should get all boundaries', async () => {
-        await controller.getAllBoundaries(req, res);
 
+    test('GET /admin/boundaries should return all boundaries', async () => {
+        const boundaries: BoundaryDto[] = [{ name: 'boundary1', description: 'desc1' }];
+        (boundaryRepo.getAllBoundaries as jest.Mock).mockResolvedValue(boundaries);
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(true);
+
+        const response = await request(app).get('/admin/boundaries').set('userId', 'admin');
+
+        expect(response.status).toBe(HttpStatus.OK);
+        expect(response.body.boundaries).toEqual(boundaries);
         expect(logger.log).toHaveBeenCalledWith('getAllBoundaries called;');
-        expect(repo.getAllBoundaries).toHaveBeenCalled();
-        expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-        expect(res.json).toHaveBeenCalledWith({ boundaries: [{ name: 'admin', description: 'some description' }] });
     });
 
-    it('should get boundary by name', async () => {
-        req.params.name = 'admin';
+    test('GET /admin/boundaries should return unauthorized if user is not admin', async () => {
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(false);
 
-        await controller.getBoundaryByName(req, res);
+        const response = await request(app).get('/admin/boundaries').set('userId', 'user');
 
-        expect(logger.log).toHaveBeenCalledWith('getBoundaryByName called with name: admin');
-        expect(repo.getBoundaryByName).toHaveBeenCalledWith('admin');
-        expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-        expect(res.json).toHaveBeenCalledWith({ boundaries: [{ name: 'admin', description: 'some description' }] });
+        expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
     });
 
-    it('should add a boundary', async () => {
-        req.body = { name: 'admin', description: 'some description' };
-        req.params.name = 'admin';
-        await controller.addBoundary(req, res);
+    test('GET /admin/boundaries should handle errors gracefully', async () => {
+        (boundaryRepo.getAllBoundaries as jest.Mock).mockRejectedValue(new Error('Database error'));
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(true);
 
-        expect(logger.log).toHaveBeenCalledWith('addBoundary called with boundary: admin');
-        expect(repo.insertBoundary).toHaveBeenCalledWith({ name: 'admin', description: 'some description' });
-        expect(res.status).toHaveBeenCalledWith(HttpStatus.NO_CONTENT);
+        const response = await request(app).get('/admin/boundaries').set('userId', 'admin');
+
+        expect(response.status).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
+        expect(logger.error).toHaveBeenCalledWith('Error getting boundaries: Database error');
     });
 
-    it('should update a boundary', async () => {
-        req.body = { name: 'admin', description: 'updated description' };
+    test('GET /admin/boundaries/:name should return boundary by name', async () => {
+        const boundaryName = 'boundary1';
+        const boundaries: BoundaryDto[] = [{ name: boundaryName, description: 'desc1' }];
+        (boundaryRepo.getBoundaryByName as jest.Mock).mockResolvedValue(boundaries);
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(true);
 
-        await controller.updateBoundary(req, res);
+        const response = await request(app).get(`/admin/boundaries/${boundaryName}`).set('userId', 'admin');
 
-        expect(logger.log).toHaveBeenCalledWith('updateBoundary called with boundary: admin');
-        expect(repo.updateBoundary).toHaveBeenCalledWith({ name: 'admin', description: 'updated description' });
-        expect(res.status).toHaveBeenCalledWith(HttpStatus.NO_CONTENT);
+        expect(response.status).toBe(HttpStatus.OK);
+        expect(response.body.boundaries).toEqual(boundaries);
+        expect(logger.log).toHaveBeenCalledWith(`getBoundaryByName called with name: ${boundaryName}`);
     });
 
-    it('should delete boundary by name', async () => {
-        req.params.name = 'admin';
+    test('GET /admin/boundaries/:name should return unauthorized if user is not admin', async () => {
+        const boundaryName = 'boundary1';
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(false);
 
-        await controller.deleteBoundaryByName(req, res);
+        const response = await request(app).get(`/admin/boundaries/${boundaryName}`).set('userId', 'user');
 
-        expect(logger.log).toHaveBeenCalledWith('deleteBoundaryByName called with name: admin');
-        expect(repo.deleteBoundaryByName).toHaveBeenCalledWith('admin');
-        expect(repo.deleteBoundaryByName).toHaveReturnedWith(true);
-        expect(res.status).toHaveBeenCalledWith(HttpStatus.NO_CONTENT);
+        expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
     });
 
-    it('should return error when deleting boundary with invalid name', async () => {
-        req.params.name = 'invalidboundary';
+    test('GET /admin/boundaries/:name should handle errors gracefully', async () => {
+        const boundaryName = 'boundary1';
+        (boundaryRepo.getBoundaryByName as jest.Mock).mockRejectedValue(new Error('Database error'));
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(true);
 
-        await controllerNotFound.deleteBoundaryByName(req, res);
+        const response = await request(app).get(`/admin/boundaries/${boundaryName}`).set('userId', 'admin');
 
-        expect(logger.log).toHaveBeenCalledWith('deleteBoundaryByName called with name: invalidboundary');
-        expect(repoNotFound.deleteBoundaryByName).toHaveBeenCalledWith('invalidboundary');
-        expect(repoNotFound.deleteBoundaryByName).toHaveReturnedWith(false);
-        expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+        expect(response.status).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
+        expect(logger.error).toHaveBeenCalledWith('Error getting boundary by name: Database error');
     });
 
-    it('should return error when getting boundary with invalid name', async () => {
-        req.params.name = 'invalidboundary';
-
-        await controllerNotFound.getBoundaryByName(req, res);
-
-        expect(logger.log).toHaveBeenCalledWith('getBoundaryByName called with name: invalidboundary');
-        expect(repoNotFound.getBoundaryByName).toHaveBeenCalledWith('invalidboundary');
-        expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-        expect(res.json).toHaveBeenCalledWith({ boundaries: [] });
+    test('POST /admin/boundaries should add a new boundary', async () => {
+        const newBoundary: BoundaryDto = { name: 'boundary1', description: 'desc1' };
+        (boundaryRepo.insertBoundary as jest.Mock).mockResolvedValue(true);
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(true);
+    
+        const response = await request(app).post('/admin/boundaries').send(newBoundary).set('userId', 'admin');
+    
+        expect(response.status).toBe(HttpStatus.NO_CONTENT);
+        expect(logger.log).toHaveBeenCalledWith(`addBoundary called with boundary: ${newBoundary.name}`);
+    });
+    
+    test('POST /admin/boundaries should return BAD_REQUEST if insertion fails', async () => {
+        const newBoundary: BoundaryDto = { name: 'boundary1', description: 'desc1' };
+        (boundaryRepo.insertBoundary as jest.Mock).mockResolvedValue(false);
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(true);
+    
+        const response = await request(app).post('/admin/boundaries').send(newBoundary).set('userId', 'admin');
+    
+        expect(response.status).toBe(HttpStatus.BAD_REQUEST);
+        expect(logger.log).toHaveBeenCalledWith(`addBoundary called with boundary: ${newBoundary.name}`);
+    });
+    
+    test('POST /admin/boundaries should return unauthorized if user is not admin', async () => {
+        const newBoundary: BoundaryDto = { name: 'boundary1', description: 'desc1' };
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(false);
+    
+        const response = await request(app).post('/admin/boundaries').send(newBoundary).set('userId', 'user');
+    
+        expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
+    });
+    
+    test('POST /admin/boundaries should handle errors gracefully', async () => {
+        const newBoundary: BoundaryDto = { name: 'boundary1', description: 'desc1' };
+        (boundaryRepo.insertBoundary as jest.Mock).mockRejectedValue(new Error('Database error'));
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(true);
+    
+        const response = await request(app).post('/admin/boundaries').send(newBoundary).set('userId', 'admin');
+    
+        expect(response.status).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
+        expect(logger.error).toHaveBeenCalledWith('Error adding a boundary: Database error');
+    });
+    
+    test('PUT /admin/boundaries should update a boundary', async () => {
+        const updateBoundary: BoundaryDto = { name: 'boundary1', description: 'desc1' };
+        (boundaryRepo.updateBoundary as jest.Mock).mockResolvedValue(true);
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(true);
+    
+        const response = await request(app).put('/admin/boundaries').send(updateBoundary).set('userId', 'admin');
+    
+        expect(response.status).toBe(HttpStatus.NO_CONTENT);
+        expect(logger.log).toHaveBeenCalledWith(`updateBoundary called with boundary: ${updateBoundary.name}`);
+    });
+    
+    test('PUT /admin/boundaries should return BAD_REQUEST if update fails', async () => {
+        const updateBoundary: BoundaryDto = { name: 'boundary1', description: 'desc1' };
+        (boundaryRepo.updateBoundary as jest.Mock).mockResolvedValue(false);
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(true);
+    
+        const response = await request(app).put('/admin/boundaries').send(updateBoundary).set('userId', 'admin');
+    
+        expect(response.status).toBe(HttpStatus.BAD_REQUEST);
+        expect(logger.log).toHaveBeenCalledWith(`updateBoundary called with boundary: ${updateBoundary.name}`);
+    });
+    
+    test('PUT /admin/boundaries should return unauthorized if user is not admin', async () => {
+        const updateBoundary: BoundaryDto = { name: 'boundary1', description: 'desc1' };
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(false);
+    
+        const response = await request(app).put('/admin/boundaries').send(updateBoundary).set('userId', 'user');
+    
+        expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
+    });
+    
+    test('PUT /admin/boundaries should handle errors gracefully', async () => {
+        const updateBoundary: BoundaryDto = { name: 'boundary1', description: 'desc1' };
+        (boundaryRepo.updateBoundary as jest.Mock).mockRejectedValue(new Error('Database error'));
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(true);
+    
+        const response = await request(app).put('/admin/boundaries').send(updateBoundary).set('userId', 'admin');
+    
+        expect(response.status).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
+        expect(logger.error).toHaveBeenCalledWith('Error updating the boundary: Database error');
+    });
+    
+    test('DELETE /admin/boundaries/:name should delete a boundary by name', async () => {
+        (boundaryRepo.deleteBoundaryByName as jest.Mock).mockResolvedValue(true);
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(true);
+    
+        const response = await request(app).delete('/admin/boundaries/boundary1').set('userId', 'admin');
+    
+        expect(response.status).toBe(HttpStatus.NO_CONTENT);
+        expect(logger.log).toHaveBeenCalledWith('deleteBoundaryByName called with name: boundary1');
+    });
+    
+    test('DELETE /admin/boundaries/:name should return BAD_REQUEST if deletion fails', async () => {
+        (boundaryRepo.deleteBoundaryByName as jest.Mock).mockResolvedValue(false);
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(true);
+    
+        const response = await request(app).delete('/admin/boundaries/boundary1').set('userId', 'admin');
+    
+        expect(response.status).toBe(HttpStatus.BAD_REQUEST);
+        expect(logger.log).toHaveBeenCalledWith('deleteBoundaryByName called with name: boundary1');
+    });
+    
+    test('DELETE /admin/boundaries/:name should return unauthorized if user is not admin', async () => {
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(false);
+        (boundaryRepo.deleteBoundaryByName as jest.Mock).mockResolvedValue(false);
+    
+        const response = await request(app).delete('/admin/boundaries/boundary1').set('userId', 'user');
+    
+        expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
     });
 
-    it('should return error when adding boundary with invalid data', async () => {
-        req.body = { name: '', description: '' };
-        repo.insertBoundary = jest.fn().mockResolvedValue({ name: '', description: '' }).mockReturnValue(false),
-        await controller.addBoundary(req, res);
-
-        expect(logger.log).toHaveBeenCalledWith('addBoundary called with boundary: ');
-        expect(repo.insertBoundary).toHaveBeenCalledWith({ name: '', description: '' });
-        expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+        
+    test('DELETE /admin/boundaries/:name should handle errors gracefully', async () => {
+        (boundaryRepo.deleteBoundaryByName as jest.Mock).mockRejectedValue(new Error('Database error'));
+        (authorizationService.authorizeRole as jest.Mock).mockResolvedValue(true);
+    
+        const response = await request(app).delete('/admin/boundaries/boundary1').set('userId', 'admin');
+    
+        expect(response.status).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
+        expect(logger.error).toHaveBeenCalledWith('Error deleting the boundary: Database error');
     });
-
-    it('should return error when updating boundary with invalid data', async () => {
-        req.body = { name: '', description: '' };
-        repo.updateBoundary = jest.fn().mockResolvedValue({ name: '', description: '' }).mockReturnValue(false),
-        await controller.updateBoundary(req, res);
-
-        expect(logger.log).toHaveBeenCalledWith('updateBoundary called with boundary: ');
-        expect(repo.updateBoundary).toHaveBeenCalledWith({ name: '', description: '' });
-        expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
-    });
-
-    it('should return error when deleting boundary with invalid name', async () => {
-        req.params.name = '';
-        repo.deleteBoundaryByName = jest.fn().mockResolvedValue('').mockReturnValue(false),
-        await controller.deleteBoundaryByName(req, res);
-        //expect(logger.warn).toHaveBeenCalledWith('Error deleting boundary - invalid name passed.');
-        expect(logger.log).toHaveBeenCalledWith('deleteBoundaryByName called with name: ');
-        expect(repo.deleteBoundaryByName).toHaveBeenCalledWith('');
-        expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
-    });
+    
 
 });
