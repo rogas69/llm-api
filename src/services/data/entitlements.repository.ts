@@ -35,6 +35,11 @@ export class EntitlementRepository {
         return entitlement?.boundaries.includes(boundary) ?? false;
     }
 
+    /**
+     * Used during seeding of the development database
+     * @param entitlement 
+     * @returns 
+     */
     async insertEntitlement(entitlement: EntitlementDTO): Promise<boolean> {
         const result = await this.dbContext.connectDatabase()
             .then(async db => { return await db.collection<EntitlementDTO>('entitlements').insertOne(entitlement) });
