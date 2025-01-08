@@ -83,8 +83,8 @@ export class DataSeedService {
                 'Ollama',
                 ['model1', 'model2'],
                 ['embedding1', 'embedding2'],
-                { baseUrl: 'http://localhost:11434' },
-                { baseUrl: 'http://localhost:11434', maxConcurrency: 5 }
+                { baseUrl: 'http://localhost:11434', model: 'llama3.3' },
+                { baseUrl: 'http://localhost:11434', model: 'embedding1', maxConcurrency: 5 }
             ),
             new ProviderConfigurationDto(
                 'OpenAI',
@@ -97,7 +97,7 @@ export class DataSeedService {
                 'GoogleAI',
                 ['model1', 'model2'],
                 ['embedding1', 'embedding2'],
-                { apiKey: 'your-google-api-key', model: 'model1' },
+                { apiKey: 'your-google-api-key', model: 'gemma' },
                 { apiKey: 'your-google-api-key', model: 'embedding1' }
             )
         ];
