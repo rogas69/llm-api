@@ -1,11 +1,11 @@
-import { BoundaryRepository } from '../../../src/services/data/boundaryrepository';
+import { BoundaryRepository } from '../../../src/services/data/boundary.repository';
 import { DBContext } from '../../../src/database/dbcontext';
 import { Db, Collection } from 'mongodb';
 import { ILogger } from '../../../src/services/ILogger';
 import '../../../src/services/data/boundarydto'; // Import the namespace
 import { BoundaryDto } from '../../../src/services/data/boundarydto';
 
-describe('BoundariesRepository Tests', () => {
+describe('BoundaryRepository Tests', () => {
     let dbContext: DBContext;
     //let dbClient: MongoClient;
     let db: Db;

@@ -1,9 +1,11 @@
 import { DBContext } from "../database/dbcontext";
-import { BoundaryRepository } from "./data/boundaryrepository";
-import { BoundaryConfigurationRepository } from "./data/boundaryconfigurationrepository";
+import { BoundaryRepository } from "./data/boundary.repository";
+import { BoundaryConfigurationRepository } from "./data/boundaryconfiguration.repository";
 import { ProviderConfigurationDto } from "./data/providerconfigurationdto";
-import { ProviderConfigurationRepository } from "./data/providerconfigurationrepository";
+import { ProviderConfigurationRepository } from "./data/providerconfiguration.repository";
 import { ILogger } from "./ILogger";
+import { EntitlementDTO } from "./data/entitlementdto";
+import { EntitlementRepository } from "./data/entitlements.repository";
 
 /**
  * This class is used to prepopulate the database with data used for testing.
@@ -14,6 +16,7 @@ export class DataSeedService {
         private readonly boundaryRepo: BoundaryRepository,
         private readonly boundaryConfigurationRepo: BoundaryConfigurationRepository,
         private readonly providerConfigurationRepo: ProviderConfigurationRepository,
+        private readonly entitlementRepo: EntitlementRepository,
         private readonly dbContext: DBContext
     ) { }
 
@@ -35,6 +38,7 @@ export class DataSeedService {
                 await db.collection('boundaries').deleteMany({});
                 await db.collection('boundary_configurations').deleteMany({});
                 await db.collection('provider_configurations').deleteMany({});
+                await db.collection('entitlements').deleteMany({});
             });
     };
 
@@ -79,8 +83,8 @@ export class DataSeedService {
                 'Ollama',
                 ['model1', 'model2'],
                 ['embedding1', 'embedding2'],
-                { baseUrl: 'http://localhost:11434' },
-                { baseUrl: 'http://localhost:11434', maxConcurrency: 5 }
+                { baseUrl: 'http://localhost:11434', model: 'llama3.3' },
+                { baseUrl: 'http://localhost:11434', model: 'embedding1', maxConcurrency: 5 }
             ),
             new ProviderConfigurationDto(
                 'OpenAI',
@@ -93,13 +97,25 @@ export class DataSeedService {
                 'GoogleAI',
                 ['model1', 'model2'],
                 ['embedding1', 'embedding2'],
-                { apiKey: 'your-google-api-key', model: 'model1' },
+                { apiKey: 'your-google-api-key', model: 'gemma' },
                 { apiKey: 'your-google-api-key', model: 'embedding1' }
             )
         ];
 
         for (const config of providerConfigurations) {
             await this.providerConfigurationRepo.insertProviderConfiguration(config);
+        }
+    }
+
+    private async seedEntitlements(): Promise<void> {
+        const entitlements: EntitlementDTO[] = [
+            { userid: 'user1', roles: ['admin'],          boundaries: []},
+            { userid: 'user2', roles: ['admin', 'user'],  boundaries: ['boundary2', 'boundary3']},
+            { userid: 'user3', roles: ['user'],           boundaries: ['boundary1', 'boundary3']}
+        ];
+
+        for (const entitlement of entitlements) {
+            await this.entitlementRepo.insertEntitlement(entitlement);
         }
     }
 }

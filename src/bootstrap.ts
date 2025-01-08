@@ -6,10 +6,11 @@ import { ILogger } from "./services/ILogger";
 import { MongoClient } from "mongodb";
 import { DBContext } from "./database/dbcontext";
 
-import { BoundaryRepository } from "./services/data/boundaryrepository";
-import { BoundaryConfigurationRepository } from "./services/data/boundaryconfigurationrepository";
+import { BoundaryRepository } from "./services/data/boundary.repository";
+import { BoundaryConfigurationRepository } from "./services/data/boundaryconfiguration.repository";
 import { DataSeedService } from "./services/dataseed.service";
-import { ProviderConfigurationRepository } from "./services/data/providerconfigurationrepository";
+import { ProviderConfigurationRepository } from "./services/data/providerconfiguration.repository";
+import { EntitlementRepository } from "./services/data/entitlements.repository";
 /**
  * This function is responsible for loading the DI container
  * @param app - the express application
@@ -28,10 +29,11 @@ export const setupDIContainer = (app: Application) => {
   container.register({ boundaryRepo: asClass(BoundaryRepository).scoped() });
   container.register({ boundaryConfigurationRepo: asClass(BoundaryConfigurationRepository).scoped() });
   container.register({ providerConfigurationRepo: asClass(ProviderConfigurationRepository).scoped() });
-  
+
+  container.register({ entitlementRepo: asClass(EntitlementRepository).scoped() });
+
   container.register({ dataSeedService: asClass(DataSeedService).scoped() });
 
-  app.use(scopePerRequest(container));
-
+  
   return container;
 }

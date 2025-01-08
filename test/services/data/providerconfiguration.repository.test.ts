@@ -1,4 +1,4 @@
-import { GetProviderConfigurationsParams, ProviderConfigurationRepository } from '../../../src/services/data/providerconfigurationrepository';
+import { GetProviderConfigurationsParams, ProviderConfigurationRepository } from '../../../src/services/data/providerconfiguration.repository';
 import { DBContext } from '../../../src/database/dbcontext';
 import { ILogger } from '../../../src/services/ILogger';
 import { ProviderConfigurationDto } from '../../../src/services/data/providerconfigurationdto';

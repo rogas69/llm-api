@@ -1,9 +1,10 @@
 import express from 'express';
-import { loadControllers } from 'awilix-express';
+import { loadControllers, scopePerRequest } from 'awilix-express';
 import { setupDIContainer } from './bootstrap';
 import { ILogger } from './services/ILogger';
 import { Logger } from './services/Logger';
 import * as dotenv from 'dotenv'
+import { asValue, AwilixContainer } from 'awilix';
 
 const HTTP_PORT = 3000;
 
@@ -17,7 +18,7 @@ const startServer = async () => {
     //load environment variables
     dotenv.config({path: __dirname + '/.env'});
 
-    const container = setupDIContainer(app);
+    const container : AwilixContainer<any> = setupDIContainer(app);
     
     //seed data if required. Commend this code if the seeding is not required.
     const dataSeedService = container.resolve('dataSeedService');
@@ -25,6 +26,9 @@ const startServer = async () => {
     
 
     const router : express.Router = loadControllers('controllers/**/*.ts', { cwd: __dirname }); 
+
+    app.use(scopePerRequest(container));
+
     app.use(router);
 
     app.listen(HTTP_PORT, () => {
