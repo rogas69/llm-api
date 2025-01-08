@@ -123,13 +123,13 @@ describe('DataSeedService Tests', () => {
     });
 
     it('should seed provider configurations by inserting predefined provider configurations', async () => {
-        const providerConfigurations = [
+        const providerConfigurations: ProviderConfigurationDto[] = [
             new ProviderConfigurationDto(
                 'Ollama',
                 ['model1', 'model2'],
                 ['embedding1', 'embedding2'],
-                { baseUrl: 'http://localhost:11434' },
-                { baseUrl: 'http://localhost:11434', maxConcurrency: 5 }
+                { baseUrl: 'http://localhost:11434', model: 'llama3.3' },
+                { baseUrl: 'http://localhost:11434', model: 'embedding1', maxConcurrency: 5 }
             ),
             new ProviderConfigurationDto(
                 'OpenAI',
@@ -142,7 +142,7 @@ describe('DataSeedService Tests', () => {
                 'GoogleAI',
                 ['model1', 'model2'],
                 ['embedding1', 'embedding2'],
-                { apiKey: 'your-google-api-key', model: 'model1' },
+                { apiKey: 'your-google-api-key', model: 'gemma' },
                 { apiKey: 'your-google-api-key', model: 'embedding1' }
             )
         ];

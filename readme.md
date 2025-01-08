@@ -16,4 +16,4 @@ The folder points to the volume mapped to the container data foler. This allows 
 
 When you have the container set up, you can stop it by running `docker stop mongo-genai` and start it by running `docker start mongo-genai`
 
-**Note** - On Windows, Docker desktop applicaiton must be configured and running.
+**Note** - On Windows, Docker desktop application must be configured and running.
