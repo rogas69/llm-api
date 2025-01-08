@@ -3,6 +3,7 @@ import { DELETE, GET, POST, PUT, route } from "awilix-express";
 import { ILogger } from '../../services/ILogger';
 import { HttpStatus } from 'http-status-ts';
 import { ProviderConfigurationRepository } from '../../services/data/providerconfiguration.repository';
+import { AuthorizationService } from '../../services/authorization.service';
 
 /**
  * Controller used to configure default configuration parameters for embedding and chat models for different providers.
@@ -11,19 +12,30 @@ import { ProviderConfigurationRepository } from '../../services/data/providercon
 export class ProviderConfigurationController {
     constructor(
         private readonly logger: ILogger,
-        private readonly providerConfigurationRepo: ProviderConfigurationRepository) { }
+        private readonly providerConfigurationRepo: ProviderConfigurationRepository,
+        private readonly authorizationService: AuthorizationService) { }
+
+    private async authorize(req: express.Request, res: express.Response): Promise<boolean> {
+        if (!await this.authorizationService.authorizeRole(req, res)) {
+            res.status(HttpStatus.UNAUTHORIZED).send();
+            return false;
+        }
+        return true;
+    }
 
 
     @GET()
     async getProviderConfigurations(req: express.Request, res: express.Response) {
         try {
             this.logger.log('getProviderConfigurations called;');
-            const providerName = req.query.providerName as string  | undefined;
+            if (!await this.authorize(req, res))
+                return;
+            const providerName = req.query.providerName as string | undefined;
             const configurations = await this.providerConfigurationRepo.getProviderConfigurations({ modelProvider: providerName });
             res.status(HttpStatus.OK)
                 .json({ configurations: configurations });
         } catch (error) {
-            const err : Error = error as Error;
+            const err: Error = error as Error;
             this.logger.error(`Error getting provider configurations: ${err.message}`);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .send();
@@ -34,6 +46,9 @@ export class ProviderConfigurationController {
     @GET()
     async getEmbeddingModelsForProvider(req: express.Request, res: express.Response) {
         this.logger.log('getEmbeddingModelsForProvider called;');
+        if (!await this.authorize(req, res))
+            return;
+
         const providerName = req.params.name;
         const models = await this.providerConfigurationRepo.getProviderEmbeddingModels({ modelProvider: providerName });
         res.status(HttpStatus.OK)
@@ -44,6 +59,9 @@ export class ProviderConfigurationController {
     @GET()
     async getChatModelsForProvider(req: express.Request, res: express.Response) {
         this.logger.log('getEmbeddingModelsForProvider called;');
+        if (!await this.authorize(req, res))
+            return;
+
         const providerName = req.params.name;
         const models = await this.providerConfigurationRepo.getProviderChatModels({ modelProvider: providerName });
         res.status(HttpStatus.OK)
@@ -54,9 +72,12 @@ export class ProviderConfigurationController {
     @GET()
     async getEmbeddingModelParametersForProvider(req: express.Request, res: express.Response) {
         this.logger.log('getEmbeddingModelsForProvider called;');
+        if (!await this.authorize(req, res))
+            return;
+
         const providerName = req.params.name;
         const models = await this.providerConfigurationRepo.getProviderConfigurations({ modelProvider: providerName });
-        if(models.length === 0) {
+        if (models.length === 0) {
             res.status(HttpStatus.NOT_FOUND)
                 .send();
         }
@@ -68,9 +89,12 @@ export class ProviderConfigurationController {
     @GET()
     async getLlmModelParametersForProvider(req: express.Request, res: express.Response) {
         this.logger.log('getEmbeddingModelsForProvider called;');
+        if (!await this.authorize(req, res))
+            return;
+
         const providerName = req.params.name;
         const models = await this.providerConfigurationRepo.getProviderConfigurations({ modelProvider: providerName });
-        if(models.length === 0) {
+        if (models.length === 0) {
             res.status(HttpStatus.NOT_FOUND)
                 .send();
         }
