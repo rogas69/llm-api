@@ -22,4 +22,4 @@ class EmbeddingModelFactory {
     }
 }
 
-export {EmbeddingModelFactory };
+export { EmbeddingModelFactory };
